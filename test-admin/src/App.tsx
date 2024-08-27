@@ -25,11 +25,12 @@ import { CommentCreate, CommentEdit, CommentList } from "./comments";
 import { AlbumCreate, AlbumEdit, AlbumList } from "./albums";
 import { PhotosCreate, PhotosEdit, PhotosList } from "./photos";
 import { TodoCreate, TodoEdit, TodosList } from "./todos";
+import { MyLoginPage } from "./LogIn";
 
 
 export const App = () => (
-  <Admin authProvider={authProv} layout={Layout} dashboard={Dashboard} dataProvider={dataProvider} theme={houseLightTheme}
-  darkTheme={houseDarkTheme} /*theme={PageTheme} darkTheme={PageThemeDark}*/> /* The themes that are commented are custom themes, I created, the one being used is one improted :)*/
+  <Admin  loginPage={MyLoginPage} authProvider={authProv} layout={Layout} dashboard={Dashboard} dataProvider={dataProvider} theme={houseLightTheme}
+  darkTheme={houseDarkTheme} /*theme={PageTheme} darkTheme={PageThemeDark}*/> /* The themes that are commented are custom themes, I created, the one being used is one improted*/
 
     <Resource name="users" list={UserList} edit={UserEdit} create={UserCreate} icon={UserIcon} ></Resource>
     <Resource name="posts" list={PostList} edit={PostEdit} create={PostCreate} icon={PostIcon}></Resource>
