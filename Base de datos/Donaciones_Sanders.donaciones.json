@@ -1,0 +1,150 @@
+[{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c0fd"
+  },
+  "monto": 100,
+  "fecha_donacion": {
+    "$date": "2024-08-01T00:00:00.000Z"
+  },
+  "en_linea": true,
+  "donador": {
+    "nombre": "Ana",
+    "apellido": "Martínez",
+    "email": "ana.martinez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c0fe"
+  },
+  "monto": 150,
+  "fecha_donacion": {
+    "$date": "2024-08-02T00:00:00.000Z"
+  },
+  "en_linea": false,
+  "donador": {
+    "nombre": "Pedro",
+    "apellido": "Hernández",
+    "email": "pedro.hernandez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c0ff"
+  },
+  "monto": 75,
+  "fecha_donacion": {
+    "$date": "2024-08-03T00:00:00.000Z"
+  },
+  "en_linea": true,
+  "donador": {
+    "nombre": "Luisa",
+    "apellido": "Gómez",
+    "email": "luisa.gomez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c100"
+  },
+  "monto": 200,
+  "fecha_donacion": {
+    "$date": "2024-08-04T00:00:00.000Z"
+  },
+  "en_linea": true,
+  "donador": {
+    "nombre": "Sofía",
+    "apellido": "Rodríguez",
+    "email": "sofia.rodriguez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c101"
+  },
+  "monto": 50,
+  "fecha_donacion": {
+    "$date": "2024-08-05T00:00:00.000Z"
+  },
+  "en_linea": false,
+  "donador": {
+    "nombre": "José",
+    "apellido": "González",
+    "email": "jose.gonzalez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c102"
+  },
+  "monto": 300,
+  "fecha_donacion": {
+    "$date": "2024-08-06T00:00:00.000Z"
+  },
+  "en_linea": true,
+  "donador": {
+    "nombre": "Laura",
+    "apellido": "Fernández",
+    "email": "laura.fernandez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c103"
+  },
+  "monto": 120,
+  "fecha_donacion": {
+    "$date": "2024-08-07T00:00:00.000Z"
+  },
+  "en_linea": false,
+  "donador": {
+    "nombre": "Miguel",
+    "apellido": "Ramírez",
+    "email": "miguel.ramirez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c104"
+  },
+  "monto": 250,
+  "fecha_donacion": {
+    "$date": "2024-08-08T00:00:00.000Z"
+  },
+  "en_linea": true,
+  "donador": {
+    "nombre": "Ana",
+    "apellido": "Martínez",
+    "email": "ana.martinez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c105"
+  },
+  "monto": 180,
+  "fecha_donacion": {
+    "$date": "2024-08-09T00:00:00.000Z"
+  },
+  "en_linea": false,
+  "donador": {
+    "nombre": "Pedro",
+    "apellido": "Hernández",
+    "email": "pedro.hernandez@example.com"
+  }
+},
+{
+  "_id": {
+    "$oid": "66ce5d681eafbcc424e3c106"
+  },
+  "monto": 90,
+  "fecha_donacion": {
+    "$date": "2024-08-10T00:00:00.000Z"
+  },
+  "en_linea": true,
+  "donador": {
+    "nombre": "Luisa",
+    "apellido": "Gómez",
+    "email": "luisa.gomez@example.com"
+  }
+}]
