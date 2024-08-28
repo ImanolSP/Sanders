@@ -3,7 +3,7 @@
 // Importing modules
 import express, { response } from "express";
 import { MongoClient, ObjectId } from "mongodb";
-import {CheckJSONNewDonation} from "./test.js";
+import {CheckJSONNewDonation} from "./functions.js";
 
 const app = express();
 const port = 3000;
@@ -19,7 +19,6 @@ const CLIENT = new MongoClient(url);
 const dbName = "TEST101";
 const donacionesCollection = "donaciones";
 
-const requieredFields = []
 
 
 
