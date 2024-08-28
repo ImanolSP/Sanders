@@ -1,0 +1,38 @@
+[
+  {
+  "monto": 100,
+  "fecha": "2020-08",
+  "donador": {
+    "nombre": "Micheal",
+    "apellido": "Devlyn",
+    "email": "micheal@yahoo.com"
+  }
+},
+{
+  "monto": 200,
+  "fecha": "2022-08",
+  "donador": {
+    "nombre": "Tomas",
+    "apellido": "Molina",
+    "email": "tomas@gmail.com"
+  }
+},
+{
+  "monto": 500,
+  "fecha": "2024-08",
+  "donador": {
+    "nombre": "Imanol",
+    "apellido": "Santiesteban",
+    "email": "imasan@gmail.com"
+  }
+},
+{
+  "monto": 200,
+  "fecha": "2024-04",
+  "donador": {
+    "nombre": " Nicolas",
+    "apellido": "Alarcon",
+    "email": "nico@tec.mx"
+  }
+}
+]
