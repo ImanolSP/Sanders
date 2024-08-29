@@ -1,10 +1,10 @@
 
 const reqDonacionFields = ["monto", "fecha", "donador"]
 const reqDonadorFields = ["nombre", "apellido", "email"]
+const reqLogInFields = ["usuario", "contraseña"]
 
 export function CheckJSONNewDonation(json)
 {
-    
     for(let i = 0; i < reqDonacionFields.length; i++)
     {
         if (json[reqDonacionFields[i]] === undefined)
@@ -22,4 +22,14 @@ export function CheckJSONNewDonation(json)
     return true;
 }
     
-
+export function CheckLogIn(json)
+{
+    for(let i = 0; i < reqLogInFields.length; i++)
+    {
+        if (json[reqLogInFields[i]] === undefined)
+        {
+            return false;
+        }
+    }
+    return true;
+}
