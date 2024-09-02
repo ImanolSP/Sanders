@@ -9,9 +9,9 @@ import {
   houseDarkTheme,
 } from "react-admin";
 import { Layout } from "./Layout";
-import { dataProvider } from "./dataProvider";
+//import { dataProvider } from "./dataProvider";
 import { UserCreate, UserEdit, UserList } from "./users";
-import {PostCreate, PostEdit, PostList} from "./posts";
+import {/*PostCreate, PostEdit,*/ PostList} from "./posts";
 import { authProv } from "./authProvider";
 import { Dashboard } from "./Dashboard";
 import PostIcon from "@mui/icons-material/Book";
@@ -26,14 +26,20 @@ import { AlbumCreate, AlbumEdit, AlbumList } from "./albums";
 import { PhotosCreate, PhotosEdit, PhotosList } from "./photos";
 import { TodoCreate, TodoEdit, TodosList } from "./todos";
 import { MyLoginPage } from "./LogIn";
+import { usePermissions } from "react-admin";
+import { permission } from "process";
+import simpleRestProvider from 'ra-data-simple-rest';
+import {basedatos} from './dataprovider'
 
 
 export const App = () => (
-  <Admin  loginPage={MyLoginPage} authProvider={authProv} layout={Layout} dashboard={Dashboard} dataProvider={dataProvider} theme={houseLightTheme}
+
+
+  <Admin  loginPage={MyLoginPage} authProvider={authProv} layout={Layout} dashboard={Dashboard} dataProvider={basedatos} theme={houseLightTheme}
   darkTheme={houseDarkTheme} /*theme={PageTheme} darkTheme={PageThemeDark}*/> /* The themes that are commented are custom themes, I created, the one being used is one improted*/
 
     <Resource name="users" list={UserList} edit={UserEdit} create={UserCreate} icon={UserIcon} ></Resource>
-    <Resource name="posts" list={PostList} edit={PostEdit} create={PostCreate} icon={PostIcon}></Resource>
+    <Resource name="donaciones" list={PostList} /*edit={PostEdit} create={PostCreate}*/ icon={PostIcon}></Resource>
 
     <Resource name="comments" list={CommentList} edit={CommentEdit} create={CommentCreate}icon={CommentIcon}></Resource>
 

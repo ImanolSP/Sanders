@@ -3,10 +3,10 @@ export const PostList = () => (
 
 <List>
     <Datagrid>
-        <TextField source="id"/>
-        <ReferenceField source="userId" reference ="users"/>
-        <TextField source="title"/>
-        <TextField source="body"/>
+        <TextField source="monto"/>
+        <TextField source="fecha"/>
+        <TextField source= "donador.nombre"/>
+        <TextField source= "donador.apellido"/>
 <EditButton/>
 
     </Datagrid>
@@ -16,7 +16,7 @@ export const PostList = () => (
 
 );
 
-export const PostEdit = () => (
+/*export const PostEdit = () => (
 <Edit>
     <SimpleForm>
 
@@ -38,7 +38,7 @@ export const PostEdit = () => (
 
 
 
-);
+)
 
 export const PostCreate = ()=>(
     <Create>
@@ -48,4 +48,4 @@ export const PostCreate = ()=>(
             <TextInput source = "body" multiline rows={5}></TextInput>
         </SimpleForm>
     </Create>
-)
+)*/
