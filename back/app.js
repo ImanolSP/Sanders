@@ -4,12 +4,16 @@
 import express, { response } from "express";
 import { MongoClient, ObjectId } from "mongodb";
 import {CheckJSONNewDonation, CheckLogIn} from "./functions.js";
+import cors from 'cors';
 
 const app = express();
 const port = 3000;
 
 
 app.use(express.json());
+app.use(cors({
+  exposedHeaders: ['Content-Range', 'X-Total-Count'], // Expose headers to the client
+}));
 //app.use(express.urlencoded({ extended: true }));
 //app.use(express.static('../public'))
 
@@ -51,7 +55,7 @@ app.post("/api/donacion", async (request, response) => {
       const db = connection.db(dbName);
       const collection = db.collection(donacionesCollection);
       const result = await collection.insertOne(data);
-      
+
       response.status(200).send("Se creo una donacion exitosamente.");
 
     }
@@ -72,8 +76,9 @@ app.post("/api/donacion", async (request, response) => {
 // Obtener todas las donaciones
 // en una lista
 //----------------------------
-app.get("/api/donaciones", async (request, response) => {
+app.get("/donaciones", async (request, response) => {
   let connection = null;
+  console.log("Entro al api")
   try 
     {
       //Crear conexion a base de datos
@@ -84,7 +89,12 @@ app.get("/api/donaciones", async (request, response) => {
 
       console.log(result);
 
-      response.status(200).json(result);
+      const transformedResult = result.map(item => {
+        return { ...item, id: item._id };  //La pagina necesita un componenete "id" pero mongo regresa "_id"
+    });
+      response.setHeader('Content-Range', `donaciones 0-${result.length}/${result.length}`);
+      response.setHeader('X-Total-Count', `${result.length}`);
+      response.status(200).json(transformedResult);
 
     }
     catch (error) {
