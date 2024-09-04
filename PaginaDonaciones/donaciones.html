@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Donaciones</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="./styles.css">
+    <script type = "module" defer src="./APIcaller.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Fundacion Sanders</h1>
         <h2>Realiza tu Donación</h2>
-        <form action="#" method="POST">
+        <form id="donation-form">
             <div class="form-group">
                 <label for="nombre">Nombre:</label>
                 <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre" required>
@@ -33,6 +34,7 @@
 
             <button type="submit">Donar</button>
         </form>
+
     </div>
 </body>
 </html>
