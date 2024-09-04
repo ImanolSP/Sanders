@@ -11,7 +11,7 @@ import {
 import { Layout } from "./Layout";
 //import { dataProvider } from "./dataProvider";
 import { UserCreate, UserEdit, UserList } from "./users";
-import {/*PostCreate, PostEdit,*/ PostList} from "./posts";
+import {PostCreate, DonadoresList} from "./Donaciones";
 import { authProv } from "./authProvider";
 import { Dashboard } from "./Dashboard";
 import PostIcon from "@mui/icons-material/Book";
@@ -39,7 +39,7 @@ export const App = () => (
   darkTheme={houseDarkTheme} /*theme={PageTheme} darkTheme={PageThemeDark}*/> /* The themes that are commented are custom themes, I created, the one being used is one improted*/
 
     <Resource name="users" list={UserList} edit={UserEdit} create={UserCreate} icon={UserIcon} ></Resource>
-    <Resource name="donaciones" list={PostList} /*edit={PostEdit} create={PostCreate}*/ icon={PostIcon}></Resource>
+    <Resource name="donaciones" list={DonadoresList} /*edit={PostEdit}*/ create={PostCreate} icon={PostIcon}></Resource>
 
     <Resource name="comments" list={CommentList} edit={CommentEdit} create={CommentCreate}icon={CommentIcon}></Resource>
 

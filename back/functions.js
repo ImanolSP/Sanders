@@ -5,6 +5,11 @@ const reqLogInFields = ["usuario", "contraseña"]
 
 export function CheckJSONNewDonation(json)
 {
+    console.log("PRINTING JSON")
+    console.log(JSON.stringify(json));
+
+    console.log(JSON.stringify(json, undefined, 4));
+
     for(let i = 0; i < reqDonacionFields.length; i++)
     {
         if (json[reqDonacionFields[i]] === undefined)
@@ -16,6 +21,8 @@ export function CheckJSONNewDonation(json)
     {        
         if (json.donador[reqDonadorFields[i]] === undefined)
         {
+            console.log("PROBLEMA:",reqDonacionFields[i])
+            console.log("DONADOR UNDEFINED")
             return false;
         }
     }
