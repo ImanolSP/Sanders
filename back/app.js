@@ -36,7 +36,7 @@ async function connectToDB() {
 //----------------------------
 // Crear una donacion
 //----------------------------
-app.post("/api/donacion", async (request, response) => {
+app.post("/donaciones", async (request, response) => {
   let connection = null;
   try 
     {
@@ -44,6 +44,7 @@ app.post("/api/donacion", async (request, response) => {
       const data = request.body;
       if(!CheckJSONNewDonation(data))
       {
+        console.log("Formato incorecto")
         response.status(500).send("JSON en formato incorrecto.");
       }
       else
@@ -56,7 +57,7 @@ app.post("/api/donacion", async (request, response) => {
       const collection = db.collection(donacionesCollection);
       const result = await collection.insertOne(data);
 
-      response.status(200).send("Se creo una donacion exitosamente.");
+      response.status(201).json({ message: "Se creó una donación exitosamente.", id: result.insertedId });
 
     }
     catch (error) {

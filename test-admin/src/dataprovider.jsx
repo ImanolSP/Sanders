@@ -60,7 +60,14 @@ export const basedatos={
             method: 'POST',
             body: JSON.stringify(params.data),
         })
-        return { data: json };
+        console.log("PRINTING JSONCREATE")
+        console.log(JSON.stringify(json));
+
+        console.log(JSON.stringify(json, undefined, 4));
+        if (!json || !json.id) {
+            throw new Error('The API response does not contain _id.');
+        }
+        return { data: { ...params.data, id: json.id }, };
     },
 
     update: async (resource, params) => {
