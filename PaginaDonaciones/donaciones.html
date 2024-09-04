@@ -5,26 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Donaciones</title>
     <link rel="stylesheet" href="styles.css">
-    <script>
-        function mostrarMensaje(event) {
-            event.preventDefault(); 
-
-            const nombre = document.getElementById('nombre').value;
-
-            const mensaje = document.createElement('p');
-            mensaje.textContent = `¡Muchas gracias por tu donación ${nombre}!`;
-
-            const container = document.querySelector('.container');
-            container.innerHTML = ''; 
-            container.appendChild(mensaje);
-        }
-    </script>
+    <script type = "module" defer src = "./APIcaller.js"></script> 
 </head>
 <body>
-    <div class="container">
+    <div class="container" id = "main-container">
         <h1>Fundacion Sanders</h1>
         <h2>Realiza tu Donación</h2>
-        <form onsubmit="mostrarMensaje(event)">
+        <form id = "donation-form">
             <div class="form-group">
                 <label for="nombre">Nombre:</label>
                 <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre" required>

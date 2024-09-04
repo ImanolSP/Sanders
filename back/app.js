@@ -57,12 +57,12 @@ app.post("/donaciones", async (request, response) => {
       const collection = db.collection(donacionesCollection);
       const result = await collection.insertOne(data);
 
-      response.status(201).json({ message: "Se creó una donación exitosamente.", id: result.insertedId });
+      response.status(201).json({ status: true, id: result.insertedId });
 
     }
     catch (error) {
         response.status(500);
-        response.json(error);
+        response.json({ status: false, id: "" });
         console.log(error);
       }
       finally {
