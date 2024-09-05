@@ -22,7 +22,7 @@ body {
 
 /* Contenedor principal */
 .container {
-    background-color: rgba(255,255,255,0.6);
+    background-color: rgba(255,255,255,0.9);
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -40,7 +40,7 @@ body {
 .container h2 {
     text-align: center;
     margin-bottom: 20px;
-    color: #333333;
+    color: #000000;
 }
 
 /* Grupos de formulario */
@@ -65,7 +65,7 @@ body {
 }
 
 /* Botón de envío */
-button[type="submit"] {
+button {
     width: 100%;
     padding: 12px;
     background-color: #28a745;
@@ -77,6 +77,6 @@ button[type="submit"] {
     transition: background-color 0.3s ease;
 }
 
-button[type="submit"]:hover {
+button:hover {
     background-color: #218838;
 }

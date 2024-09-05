@@ -1,5 +1,9 @@
+let originalHTML;
+
 document.getElementById('donation-form').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent the default form submission behavior
+    originalHTML = document.getElementById('main-container').innerHTML;
+
     console.log("PRESSED!");
     const currentDate = new Date();
     let json = {
@@ -37,32 +41,58 @@ document.getElementById('donation-form').addEventListener('submit', function(eve
 
     if (data.status)
     {
-      SuccessMessage(json.donador.nombre);
+      Message(`¡Muchas gracias por tu donación ${json.donador.nombre}!`)
+      //SuccessMessage(json.donador.nombre);
     }
     else{
-      UnsuccessMessage();
+      //UnsuccessMessage();
+      Message("¡Hubo un error!")
     }
+    //AddEventToBackButton();
   })
   .catch(error => {
     console.log("Error:", error);
-    UnsuccessMessage();
+    //UnsuccessMessage();
+    //AddEventToBackButton();
+    Message("¡Hubo un error!")
   });
-
     
 })
 
 function SuccessMessage(nombre)
 {    
     const container =document.getElementById('main-container');
-    container.innerHTML = `<p>¡Muchas gracias por tu donación ${nombre}!</p>
-                            <button>Back</button>`; 
+    container.innerHTML = `<h2>¡Muchas gracias por tu donación ${nombre}!</h2>
+                            <button id = "backButton">Back</button>`; 
 
+}
+function Message(text)
+{    
+    const container = document.getElementById('main-container');
+    container.innerHTML = `<h2>${text}</h2>`;
+    
+    const backButton = document.createElement("button");
+    backButton.innerHTML = "Back"
+    
+    backButton.addEventListener("click", function(event){
+      const container =document.getElementById('main-container');
+      container.innerHTML = originalHTML;
+    });
 
+    container.appendChild(backButton);
 }
 
 
 function UnsuccessMessage(nombre)
 {
   const container =document.getElementById('main-container');
-  container.innerHTML = `<p>Error!</p>`;
+  container.innerHTML = `<h2>Error!</h2>`;
+}
+
+function AddEventToBackButton()
+{
+  document.getElementById("backButton").addEventListener("click", function(event){
+    const container =document.getElementById('main-container');
+    container.innerHTML = originalHTML;
+  });
 }
