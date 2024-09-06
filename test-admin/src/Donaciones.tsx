@@ -39,9 +39,8 @@ export const DonadoresList = () => (
 export const PostCreate = ()=>(
     <Create>
         <SimpleForm>
-        {/*<TextInput source="id" InputProps={{disabled:true}}></TextInput>*/}
         <NumberInput source="monto"></NumberInput>
-        <TextInput source="fecha"></TextInput>
+        <DateInput source="fecha"></DateInput>
         <TextInput source = "donador.nombre"></TextInput>
         <TextInput source = "donador.apellido"></TextInput>
         <TextInput source = "donador.email"></TextInput>
