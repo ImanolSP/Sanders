@@ -139,6 +139,98 @@ app.get("/donaciones", async (request, response) => {
   }
 });
 
+//----------------------------
+// ENDPOINT
+// Obtener todos las usuarios
+// en una lista
+//----------------------------
+app.get("/usuarios", async (request, response) => {
+  let connection = null;
+  try 
+    {
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(usuariosCollection);
+      const result = await collection.find().toArray();
+
+
+      console.log(result);
+      result.forEach((usuario) => {
+        delete usuario.contraseña;
+      })
+
+      response.setHeader('Content-Range', `donaciones 0-${result.length}/${result.length}`);
+      response.setHeader('X-Total-Count', `${result.length}`);
+      response.status(200).json(result);
+    }
+    catch (error) {
+        response.status(500);
+        response.json(error);
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("Connection closed succesfully!");
+        }
+      }
+});
+
+//----------------------------
+// ENDPOINT
+// Crear un usuario
+//----------------------------
+app.post("/usuarios", async (request, response) =>{
+  let connection = null;
+    try 
+    {
+      //Validar que el JSON recibido este correcto
+      const data = request.body;
+      if(!CheckUsuario(data))
+      {
+        console.log("Formato incorrecto")
+        return response.status(500).json({ status: false, id: "" });
+      }
+  
+      console.log("DATOS enviado correctos")
+      
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(usuariosCollection);
+      const check = await collection.find({"usuario": data["usuario"]}).toArray();
+
+      if (check.length !== 0)
+      {
+        console.log("Ese usuario ya existe.")
+        return response.status(500).json({ status: false, id: "" });
+      }
+
+
+      const result = await collection.insertOne(data);
+
+      //console.log(result);
+      if (result.acknowledged)
+      {
+        return response.status(200).json({ status: true, id: result.insertedId });
+      }
+      else return response.status(500).json({ status: false, id: "" });
+
+    }
+    catch (error) {
+        response.status(500);
+        response.json({ status: false, id: "" });
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("Connection closed succesfully!");
+        }
+      } 
+});
+
 
 //----------------------------
 // ENDPOINT
