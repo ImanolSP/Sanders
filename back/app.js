@@ -1,6 +1,9 @@
-import express, { response } from "express";
+"use strict";
+
+// Importing modules
+import express, { request, response } from "express";
 import { MongoClient, ObjectId } from "mongodb";
-import { CheckJSONNewDonation, CheckLogIn } from "./functions.js";
+import {CheckJSONNewDonation, CheckLogIn, CheckUsuario} from "./functions.js";
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import CryptoJS from 'crypto-js';
@@ -29,6 +32,8 @@ const SECRET_KEY = "Whatever";
 async function connectToDB() {
   return await CLIENT.connect();
 }
+
+
 //FUNCTION YET TO BE REVISED, NOT WORKING 100%
 const verifyToken = (requiredAccessLevel) => {
   return (req, res, next) => {
@@ -49,22 +54,38 @@ const verifyToken = (requiredAccessLevel) => {
   };
 };
 
-app.post("/donaciones", /*verifyToken(2),*/ async (request, response) => {
-  let connection = null;
-  try {
-    const data = request.body;
-    if (!CheckJSONNewDonation(data)) {
-      console.log("Formato incorecto");
-      response.status(500).send("JSON en formato incorrecto.");
-    } else {
-      console.log("DATOS enviado correctos");
-    }
-    connection = await connectToDB();
-    const db = connection.db(dbName);
-    const collection = db.collection(donacionesCollection);
-    const result = await collection.insertOne(data);
 
-      response.status(201).json({ status: true, id: result.insertedId });
+
+
+//----------------------------
+// ENDPOINT
+// Crear una donacion
+//----------------------------
+app.post("/donaciones", async (request, response) => {
+  let connection = null;
+  try 
+    {
+      //Validar que el JSON recibido este correcto
+      const data = request.body;
+      if(!CheckJSONNewDonation(data))
+      {
+        console.log("Formato incorecto")
+        return response.status(500).send("JSON en formato incorrecto.");
+      }
+      
+      console.log("DATOS enviado correctos")
+      
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(donacionesCollection);
+      const result = await collection.insertOne(data);
+
+      if (result.acknowledged)
+      {
+        return response.status(201).json({ status: true, id: result.insertedId });
+      }
+      else return response.status(500).json({ status: false, id: "" });
 
     }
     catch (error) {
@@ -80,23 +101,31 @@ app.post("/donaciones", /*verifyToken(2),*/ async (request, response) => {
       }
 });
 
-app.get("/donaciones", /*verifyToken(2),*/ async (request, response) => {
+//----------------------------
+// ENDPOINT
+// Obtener todas las donaciones
+// en una lista
+//----------------------------
+app.get("/donaciones", async (request, response) => {
   let connection = null;
-  console.log("Entro al api");
-  try {
-    connection = await connectToDB();
-    const db = connection.db(dbName);
-    const collection = db.collection(donacionesCollection);
-    const result = await collection.find().toArray();
+ 
+  try 
+    {
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(donacionesCollection);
+      const result = await collection.find().toArray();
 
     console.log(result);
 
-    const transformedResult = result.map(item => {
-      return { ...item, id: item._id };
+      result.forEach(item => {
+         item.id = item._id;
+         delete item._id;  //La pagina necesita un componenete "id" pero mongo regresa "_id"
     });
-    response.setHeader('Content-Range', `donaciones 0-${result.length}/${result.length}`);
-    response.setHeader('X-Total-Count', `${result.length}`);
-    response.status(200).json(transformedResult);
+      response.setHeader('Content-Range', `donaciones 0-${result.length}/${result.length}`);
+      response.setHeader('X-Total-Count', `${result.length}`);
+      response.status(200).json(result);
 
   } catch (error) {
     response.status(500);
@@ -110,7 +139,12 @@ app.get("/donaciones", /*verifyToken(2),*/ async (request, response) => {
   }
 });
 
-app.post("/login", async (request, response) => {
+
+//----------------------------
+// ENDPOINT
+// LogIn
+//----------------------------
+app.get("/login", async (request, response) => {
   let connection = null;
   try {
     const data = request.body;
@@ -146,6 +180,11 @@ app.post("/login", async (request, response) => {
   }
 });
 
+
+//----------------------------
+// ENDPOINT
+// LogOut
+//----------------------------
 app.post('/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
@@ -158,3 +197,23 @@ app.post('/logout', (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
+
+/*
+let connection = null;
+  try 
+    {
+     
+    }
+    catch (error) {
+        response.status(500);
+        response.json(error);
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("Connection closed succesfully!");
+        }
+      }
+*/
