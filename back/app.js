@@ -64,18 +64,20 @@ app.post("/donaciones", /*verifyToken(2),*/ async (request, response) => {
     const collection = db.collection(donacionesCollection);
     const result = await collection.insertOne(data);
 
-    response.status(201).json({ message: "Se creó una donación exitosamente.", id: result.insertedId });
+      response.status(201).json({ status: true, id: result.insertedId });
 
-  } catch (error) {
-    response.status(500);
-    response.json(error);
-    console.log(error);
-  } finally {
-    if (connection !== null) {
-      await connection.close();
-      console.log("Connection closed successfully!");
     }
-  }
+    catch (error) {
+        response.status(500);
+        response.json({ status: false, id: "" });
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("Connection closed succesfully!");
+        }
+      }
 });
 
 app.get("/donaciones", /*verifyToken(2),*/ async (request, response) => {

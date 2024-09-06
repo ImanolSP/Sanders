@@ -32,11 +32,11 @@ db.drop_collection(nombreCollection2)
 collection2 = db[nombreCollection2]
 
 
-with open('donaciones.json') as f:
+with open('./donaciones.json') as f:
     data = json.load(f)
     collection1.insert_many(data)
 
-with open ('usuarios.json') as f:
+with open ('./usuarios.json') as f:
     data = json.load(f)
     for i in data:
         i["contraseña"] = hashInput(i["contraseña"])
