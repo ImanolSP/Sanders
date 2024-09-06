@@ -1,5 +1,7 @@
 
 const reqDonacionFields = ["monto", "fecha", "donador"]
+
+
 const reqDonadorFields = ["nombre", "apellido", "email"]
 const reqLogInFields = ["usuario", "contraseña"]
 const reqUsuarioFields = ["usuario", "contraseña", "nivel_acceso"]
@@ -52,4 +54,21 @@ export function CheckUsuario(json)
         }
     }
     return true;
+}
+
+export function isNumberRange(low, high, n) //Incluyente
+{
+    if (!Number.isFinite(n)) return false;
+
+    if (n >= low && n <= high)
+    {
+        return true;
+    }
+    return false;
+
+}
+
+export function isString(s)
+{
+    return typeof s === 'string' && s.length > 0;
 }
