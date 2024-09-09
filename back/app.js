@@ -236,7 +236,7 @@ app.post("/usuarios", async (request, response) =>{
 // ENDPOINT
 // LogIn
 //----------------------------
-app.get("/login", async (request, response) => {
+app.post("/login", async (request, response) => {
   let connection = null;
   try {
     const data = request.body;
