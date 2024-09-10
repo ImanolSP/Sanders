@@ -11,7 +11,7 @@ import {
 import { Layout } from "./Layout";
 import { UserCreate, UserEdit, UserList } from "./users";
 import { PostCreate, DonadoresList } from "./Donaciones";
-import { authProv } from "./authProvider";
+import { authProvider } from "./authProvider";
 import { Dashboard } from "./Dashboard";
 import PostIcon from "@mui/icons-material/Book";
 import UserIcon from "@mui/icons-material/Group";
@@ -29,7 +29,7 @@ import { basedatos } from './dataprovider';
 export const App = () => (
   <Admin
     loginPage={MyLoginPage}
-    authProvider={authProv}
+    authProvider={authProvider}
     layout={Layout}
     dashboard={Dashboard}
     dataProvider={basedatos}
