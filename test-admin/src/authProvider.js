@@ -1,9 +1,7 @@
-
 import CryptoJS from 'crypto-js';
 
-export const authProv = {
+export const authProvider = {
     login: async ({ username, password }) => {
-        // Hash the password using SHA-256
         const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
         
         try {
@@ -16,7 +14,7 @@ export const authProv = {
                     usuario: username,
                     contraseña: hashedPassword,
                 }),
-                credentials: 'include', // This ensures cookies are sent with the request
+                credentials: 'include',
             });
 
             if (!response.ok) {
@@ -27,9 +25,7 @@ export const authProv = {
 
             if (data.acceso) {
                 localStorage.setItem('username', username);
-                console.log("nivel_acceso:",data.nivel_acceso);
-                localStorage.setItem('nivel_acceso',data.nivel_acceso);
-                // You no longer need to store the token in localStorage
+                localStorage.setItem('nivel_acceso', data.nivel_acceso);
 
                 return Promise.resolve();
             } else {
@@ -43,14 +39,12 @@ export const authProv = {
     logout: () => {
         localStorage.removeItem("username");
         localStorage.removeItem('nivel_acceso');
-        localStorage.removeItem("password"); // Remove the hashed password as well
         return Promise.resolve();
     },
 
     checkError: ({ status }) => {
         if (status === 401 || status === 403) {
             localStorage.removeItem("username");
-            localStorage.removeItem("password"); // Remove the hashed password as well
             return Promise.reject();
         }
         return Promise.resolve();
@@ -62,5 +56,16 @@ export const authProv = {
             : Promise.reject();
     },
 
-    getPermissions: () => Promise.resolve(),
+    getPermissions: () => {
+        const nivel_acceso = localStorage.getItem('nivel_acceso');
+        if (nivel_acceso === '1') {
+            return Promise.resolve('admin');
+        } else if (nivel_acceso === '2') {
+            return Promise.resolve('executive');
+        } else {
+            return Promise.resolve('restricted');
+        }
+    }
 };
+
+
