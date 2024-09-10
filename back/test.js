@@ -1,6 +1,6 @@
 "use strict"
 
-import { CheckJSONNewDonation, isNumber1_3, isPositiveNumber, isString } from "./functions.js";
+import {isJSON, CheckDonacionEdit, CheckJsonEdit, isNumber1_3, isPositiveNumber, isString, CheckUsuarioEdit } from "./functions.js";
 /*
 console.log(isNumberRange(0,3,0));
 console.log(isNumberRange(0,3,1));
@@ -15,13 +15,14 @@ console.log(isString(null));
 console.log(isString("abcdef"));*/
 
 const reqDonadorFieldst = [{"field": "nombre", "checkFunction": isString},
-                            {"field": "apellido", "checkFunction": isString}, 
+                            {"field": "fecha", "checkFunction": isString}, 
                             {"field": "email", "checkFunction": isString},
                             {"field": "monto", "checkFunction": isPositiveNumber},
                             {"field": "na", "checkFunction": isNumber1_3}];
 
 
 const testJSON = {
+    id: "123",
     "nombre": "Micheal",
     "apellido": "www",
     "email": "ddd",
@@ -49,12 +50,29 @@ function checkJson(fields, json)
 
 //console.log(typeof {"Hello": {}});
 
-
+const reqDonacionFields = [{"field": "monto", "checkFunction": isPositiveNumber}, 
+                            {"field": "fecha", "checkFunction": isString},
+                            {"field": "donador", "checkFunction": isJSON}]
 
 const donacion = {
-    "monto": "1",
-    "fecha": "2020-08",
-    "donador": "ass"
+    id: "123",
+    "monto": 200,
+    xx:2,
+    "fecha": "2022-08",
+    "donador": {
+      
+    }
   };
 
-console.log(CheckJSONNewDonation(donacion));
+
+const usuario = {
+    id : "123",
+    "usuario": "maria.sanchez",
+    "nivel_acceso": "2",
+    "zz":2
+  }
+//console.log(CheckJSONNewDonation(donacion));
+
+
+console.log(CheckDonacionEdit( donacion));
+console.log(CheckUsuarioEdit(usuario));

@@ -3,7 +3,7 @@
 // Importing modules
 import express, { request, response } from "express";
 import { MongoClient, ObjectId } from "mongodb";
-import {CheckJSONNewDonation, CheckLogIn, CheckUsuario} from "./functions.js";
+import {CheckDonacion, CheckLogIn, CheckUsuario, CheckDonacionEdit, CheckUsuarioEdit} from "./functions.js";
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import CryptoJS from 'crypto-js';
@@ -67,7 +67,7 @@ app.post("/donaciones", async (request, response) => {
     {
       //Validar que el JSON recibido este correcto
       const data = request.body;
-      if(!CheckJSONNewDonation(data))
+      if(!CheckDonacion(data))
       {     
         console.log("POST /donaciones: FALSE\nFormato Incorrecto en JSON");
         return response.status(200).json({ status: false, id: "" });
@@ -177,6 +177,58 @@ app.delete("/donaciones", async (request, response) => {
     }
     catch (error) {
         console.log("DELETE /donaciones: FALSE\nCATCH");
+        response.status(500);
+        response.json({ status: false});
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("CCS!");
+        }
+        console.log("\n");
+      }
+});
+
+//----------------------------
+// ENDPOINT
+// Editar una donacion
+//----------------------------
+app.put("/donaciones", async (request, response) => {
+  let connection = null;
+  try 
+    {
+      const data = request.body;
+      const formatData = CheckDonacionEdit(data);
+      if (!formatData.status)
+      {
+        console.log("PUT /donaciones: FALSE\nFormato Incorrecto en JSON");
+        return response.status(200).json({ status: false });
+      }
+
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(donacionesCollection);
+      const result = await collection.updateOne({ _id: new ObjectId(data.id) }, 
+                            { $set: formatData.updateFields});
+      
+      //console.log(result);
+      
+      if (result.acknowledged && result.matchedCount === 1) 
+      {
+        console.log("PUT /donaciones: TRUE");
+        response.status(200).json({ status: true});
+      }
+      else
+      {
+        console.log("PUT /donaciones: FALSE\nAcknowledged: FALSE || matchedCount !== 1");
+        response.status(200).json({ status: false});
+      }
+      
+    }
+    catch (error) {
+        console.log("PUT /donaciones: FALSE\nCATCH");
         response.status(500);
         response.json({ status: false});
         console.log(error);

@@ -17,7 +17,8 @@ const reqUsuarioFields = [{"field": "usuario", "checkFunction": isString},
                         {"field": "nivel_acceso", "checkFunction": isNumber1_3}]
 
 
-function checkJson(fields, json)
+// CHECK JSONS FORMAT FUNCTIONS
+function CheckJson(fields, json)
 {
 
     for (let i = 0; i < fields.length;i++)
@@ -33,28 +34,92 @@ function checkJson(fields, json)
     return true;
 }
 
-export function CheckJSONNewDonation(json)
+export function CheckDonacion(json)
 {
-    return checkJson(reqDonacionFields, json) && checkJson(reqDonadorFields, json.donador);
+    return CheckJson(reqDonacionFields, json) && CheckJson(reqDonadorFields, json.donador);
     
 }
     
 export function CheckLogIn(json)
 {
-    return checkJson(reqLogInFields, json);
+    return CheckJson(reqLogInFields, json);
 }
 
 export function CheckUsuario(json)
 {
-    return checkJson(reqUsuarioFields, json);
+    return CheckJson(reqUsuarioFields, json);
 }
 
-// Funciones de Check
+export function CheckJsonEdit(fields, json)
+{
+    if ("id" === undefined 
+        || !isID(json.id)) 
+    {
+        return {status:false, updateFields: {}};
+    }
+    let uF = {};
+    let count = 0;
+    for (let i = 0; i < fields.length;i++)
+    {
+        const fieldName = fields[i].field
+        const fieldValue = json[fieldName];
+        if (fieldValue !== undefined )
+        {
+            if(!fields[i].checkFunction(fieldValue) )
+            {
+                return {status:false, updateFields: {}};
+            }
+            count++;
+            uF[fieldName] = fieldValue;
+        }
+    }
+    if (count > 0)  return {status:true, updateFields: uF}
+    
+    else return {status:false, updateFields: {}}
+
+    
+   
+}
+
+export function CheckDonacionEdit(json)
+{
+    let returnJson = CheckJsonEdit(reqDonacionFields, json);
+    
+    if (returnJson.updateFields.donador === undefined) return returnJson;
+    
+    const donador = structuredClone(returnJson.updateFields.donador);
+    delete returnJson.updateFields.donador;
+
+    for (let i = 0; i < reqDonadorFields.length; i++)
+    {
+        const fieldName = reqDonadorFields[i].field
+        const fieldValue = donador[fieldName];
+        if (fieldValue !== undefined )
+        {
+            if(!reqDonadorFields[i].checkFunction(fieldValue) )
+            {
+                return {status:false, updateFields: {}};
+            }
+            
+            returnJson.updateFields["donador." + fieldName] = fieldValue;
+        }
+    }
+
+    return returnJson;
+    
+}
+
+export function CheckUsuarioEdit(json)
+{
+    return CheckJsonEdit(reqUsuarioFields, json);
+}
+
+
+// Funciones de Check Type
 
 export function isPositiveNumber(n) 
 {
-    if (!Number.isFinite(n) || n <= 0) return false;
-    return true;
+    return Number.isFinite(n) && n > 0;
 }
 
 export function isString(s)
@@ -64,15 +129,16 @@ export function isString(s)
 
 export function isNumber1_3(n)
 {
-    if (isPositiveNumber(n) && n >= 1 && n <= 3)
-    {
-        return true;
-    }
-    return false;
+    return isPositiveNumber(n) && n >= 1 && n <= 3;
+   
 }
 
 export function isJSON(json)
 {
-    if (typeof json === 'object') return true;
-    return false;
+    return typeof json === 'object';
+}
+
+function isID(id)
+{
+    return isString(id) && id.length === 24;
 }
