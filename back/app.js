@@ -68,12 +68,12 @@ app.post("/donaciones", async (request, response) => {
       //Validar que el JSON recibido este correcto
       const data = request.body;
       if(!CheckJSONNewDonation(data))
-      {
-        console.log("Formato incorecto")
-        return response.status(500).send("JSON en formato incorrecto.");
+      {     
+        console.log("POST /donaciones: FALSE\nFormato Incorrecto en JSON");
+        return response.status(200).json({ status: false, id: "" });
       }
       
-      console.log("DATOS enviado correctos")
+      //console.log("DATOS enviado correctos")
       
       //Crear conexion a base de datos
       connection = await connectToDB();
@@ -83,12 +83,16 @@ app.post("/donaciones", async (request, response) => {
 
       if (result.acknowledged)
       {
-        return response.status(201).json({ status: true, id: result.insertedId });
+        console.log("POST /donaciones: TRUE");
+        return response.status(200).json({ status: true, id: result.insertedId });
       }
-      else return response.status(500).json({ status: false, id: "" });
-
+      else {
+        console.log("POST /donaciones: FALSE\nAcknowledged: FALSE");
+        return response.status(500).json({ status: false, id: "" });
+      }
     }
     catch (error) {
+        console.log("POST /donaciones: FALSE\nCATCH");
         response.status(500);
         response.json({ status: false, id: "" });
         console.log(error);
@@ -96,8 +100,9 @@ app.post("/donaciones", async (request, response) => {
       finally {
         if (connection !== null) {
           await connection.close();
-          console.log("Connection closed succesfully!");
+          console.log("CCS!");
         }
+        console.log("\n");
       }
 });
 
@@ -117,7 +122,7 @@ app.get("/donaciones", async (request, response) => {
       const collection = db.collection(donacionesCollection);
       const result = await collection.find().toArray();
 
-    console.log(result);
+    //console.log(result);
 
       result.forEach(item => {
          item.id = item._id;
@@ -126,18 +131,66 @@ app.get("/donaciones", async (request, response) => {
       response.setHeader('Content-Range', `donaciones 0-${result.length}/${result.length}`);
       response.setHeader('X-Total-Count', `${result.length}`);
       response.status(200).json(result);
+      console.log("GET /donaciones: TRUE");
 
   } catch (error) {
+    console.log("GET /donaciones: FALSE\nCATCH");
     response.status(500);
     response.json(error);
     console.log(error);
   } finally {
     if (connection !== null) {
       await connection.close();
-      console.log("Connection closed successfully!");
+      console.log("CCS!");
     }
+    console.log("\n");
   }
 });
+
+//----------------------------
+// ENDPOINT
+// Borrar una donacion
+//----------------------------
+app.delete("/donaciones", async (request, response) => {
+  let connection = null;
+  try 
+    {
+      const data = request.body;
+
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(donacionesCollection);
+      const result = await collection.deleteOne({ _id: new ObjectId(data.id) });
+      
+      //console.log(result);
+      if (result.acknowledged && result.deletedCount === 1) 
+      {
+        console.log("DELETE /donaciones: TRUE");
+        response.status(200).json({ status: true});
+      }
+      else
+      {
+        console.log("DELETE /donaciones: FALSE\nAcknowledged: FALSE || DeletedCount !== 1");
+        response.status(200).json({ status: false});
+      }
+    }
+    catch (error) {
+        console.log("DELETE /donaciones: FALSE\nCATCH");
+        response.status(500);
+        response.json({ status: false});
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("CCS!");
+        }
+        console.log("\n");
+      }
+});
+
+
 
 //----------------------------
 // ENDPOINT
@@ -155,7 +208,7 @@ app.get("/usuarios", async (request, response) => {
       const result = await collection.find().toArray();
 
 
-      console.log(result);
+      //console.log(result);
       result.forEach((usuario) => {
         delete usuario.contraseña;
       })
@@ -163,8 +216,12 @@ app.get("/usuarios", async (request, response) => {
       response.setHeader('Content-Range', `donaciones 0-${result.length}/${result.length}`);
       response.setHeader('X-Total-Count', `${result.length}`);
       response.status(200).json(result);
+      console.log("GET /usuarios: TRUE");
+
+
     }
     catch (error) {
+        console.log("GET /usuarios: FALSE\nCATCH");
         response.status(500);
         response.json(error);
         console.log(error);
@@ -172,8 +229,9 @@ app.get("/usuarios", async (request, response) => {
       finally {
         if (connection !== null) {
           await connection.close();
-          console.log("Connection closed succesfully!");
+          console.log("CCS!");
         }
+        console.log("\n");
       }
 });
 
@@ -189,11 +247,11 @@ app.post("/usuarios", async (request, response) =>{
       const data = request.body;
       if(!CheckUsuario(data))
       {
-        console.log("Formato incorrecto")
+        console.log("POST /usuarios: FALSE\nFormato Incorrecto en JSON");
         return response.status(500).json({ status: false, id: "" });
       }
   
-      console.log("DATOS enviado correctos")
+      //console.log("DATOS enviado correctos")
       
       //Crear conexion a base de datos
       connection = await connectToDB();
@@ -203,7 +261,7 @@ app.post("/usuarios", async (request, response) =>{
 
       if (check.length !== 0)
       {
-        console.log("Ese usuario ya existe.")
+        console.log("POST /usuarios: FALSE\nUsuario repetido");
         return response.status(500).json({ status: false, id: "" });
       }
 
@@ -213,12 +271,16 @@ app.post("/usuarios", async (request, response) =>{
       //console.log(result);
       if (result.acknowledged)
       {
+        console.log("POST /usuarios: TRUE");
         return response.status(200).json({ status: true, id: result.insertedId });
       }
-      else return response.status(500).json({ status: false, id: "" });
-
+      else {
+        console.log("POST /usuarios: FALSE\nAcknowledged: FALSE");
+        return response.status(500).json({ status: false, id: "" });
+      }
     }
     catch (error) {
+      console.log("POST /usuarios: FALSE\nCATCH");
         response.status(500);
         response.json({ status: false, id: "" });
         console.log(error);
@@ -226,9 +288,53 @@ app.post("/usuarios", async (request, response) =>{
       finally {
         if (connection !== null) {
           await connection.close();
-          console.log("Connection closed succesfully!");
+          console.log("CCS!");
         }
+        console.log("\n");
       } 
+});
+
+//----------------------------
+// ENDPOINT
+// Borrar una usuario
+//----------------------------
+app.delete("/usuarios", async (request, response) => {
+  let connection = null;
+  try 
+    {
+      const data = request.body;
+
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(usuariosCollection);
+      const result = await collection.deleteOne({ _id: new ObjectId(data.id) });
+      
+      //console.log(result);
+      if (result.acknowledged && result.deletedCount === 1) 
+      {
+        console.log("DELETE /usuarios: TRUE");
+        response.status(200).json({ status: true});
+      }
+      else
+      {
+        console.log("DELETE /usuarios: FALSE\nAcknowledged: FALSE || DeletedCount !== 1");
+        response.status(200).json({ status: false});
+      }
+    }
+    catch (error) {
+        console.log("DELETE /usuarios: FALSE\nCATCH");
+        response.status(500);
+        response.json({ status: false});
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("CCS!");
+        }
+        console.log("\n");
+      }
 });
 
 
@@ -305,7 +411,8 @@ let connection = null;
       finally {
         if (connection !== null) {
           await connection.close();
-          console.log("Connection closed succesfully!");
+          console.log("CCS!");
         }
+        console.log("\n");
       }
 */

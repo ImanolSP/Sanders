@@ -1,74 +1,78 @@
 
-const reqDonacionFields = ["monto", "fecha", "donador"]
+const reqDonacionFields = [{"field": "monto", "checkFunction": isPositiveNumber}, 
+                            {"field": "fecha", "checkFunction": isString},
+                            {"field": "donador", "checkFunction": isJSON}]
 
 
-const reqDonadorFields = ["nombre", "apellido", "email"]
-const reqLogInFields = ["usuario", "contraseña"]
-const reqUsuarioFields = ["usuario", "contraseña", "nivel_acceso"]
+const reqDonadorFields = [{"field": "nombre", "checkFunction": isString},
+                            {"field": "apellido", "checkFunction": isString}, 
+                            {"field": "email", "checkFunction": isString}]
 
-export function CheckJSONNewDonation(json)
+
+const reqLogInFields = [{"field": "usuario", "checkFunction": isString}, 
+                        {"field": "contraseña", "checkFunction": isString}]
+
+const reqUsuarioFields = [{"field": "usuario", "checkFunction": isString}, 
+                        {"field": "contraseña", "checkFunction": isString}, 
+                        {"field": "nivel_acceso", "checkFunction": isNumber1_3}]
+
+
+function checkJson(fields, json)
 {
-    console.log("PRINTING JSON")
-    console.log(JSON.stringify(json));
 
-    console.log(JSON.stringify(json, undefined, 4));
-
-    for(let i = 0; i < reqDonacionFields.length; i++)
+    for (let i = 0; i < fields.length;i++)
     {
-        if (json[reqDonacionFields[i]] === undefined)
+        const fieldName = fields[i].field
+        const fieldValue = json[fieldName];
+        if (fieldValue === undefined 
+            || !fields[i].checkFunction(fieldValue) )
         {
-            return false;
-        }
-    }
-    for(let i = 0; i < reqDonadorFields.length; i++)
-    {        
-        if (json.donador[reqDonadorFields[i]] === undefined)
-        {
-            console.log("PROBLEMA:",reqDonacionFields[i])
-            console.log("DONADOR UNDEFINED")
-            return false;
+            return false
         }
     }
     return true;
+}
+
+export function CheckJSONNewDonation(json)
+{
+    return checkJson(reqDonacionFields, json) && checkJson(reqDonadorFields, json.donador);
+    
 }
     
 export function CheckLogIn(json)
 {
-    for(let i = 0; i < reqLogInFields.length; i++)
-    {
-        if (json[reqLogInFields[i]] === undefined)
-        {
-            return false;
-        }
-    }
-    return true;
+    return checkJson(reqLogInFields, json);
 }
 
 export function CheckUsuario(json)
 {
-    for(let i = 0; i < reqUsuarioFields.length; i++)
-    {
-        if (json[reqUsuarioFields[i]] === undefined)
-        {
-            return false;
-        }
-    }
-    return true;
+    return checkJson(reqUsuarioFields, json);
 }
 
-export function isNumberRange(low, high, n) //Incluyente
+// Funciones de Check
+
+export function isPositiveNumber(n) 
 {
-    if (!Number.isFinite(n)) return false;
-
-    if (n >= low && n <= high)
-    {
-        return true;
-    }
-    return false;
-
+    if (!Number.isFinite(n) || n <= 0) return false;
+    return true;
 }
 
 export function isString(s)
 {
     return typeof s === 'string' && s.length > 0;
+}
+
+export function isNumber1_3(n)
+{
+    if (isPositiveNumber(n) && n >= 1 && n <= 3)
+    {
+        return true;
+    }
+    return false;
+}
+
+export function isJSON(json)
+{
+    if (typeof json === 'object') return true;
+    return false;
 }
