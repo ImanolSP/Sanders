@@ -10,7 +10,7 @@ import {
 } from "react-admin";
 import { Layout } from "./Layout";
 import { UserCreate, UserEdit, UserList } from "./users";
-import { PostCreate, DonadoresList } from "./Donaciones";
+import { DonadoresList, DonadoresCreate, DonadoresEdit } from "./Donaciones";
 import { authProvider } from "./authProvider";
 import { Dashboard } from "./Dashboard";
 import PostIcon from "@mui/icons-material/Book";
@@ -36,8 +36,8 @@ export const App = () => (
     theme={houseLightTheme}
     darkTheme={houseDarkTheme}
   >
-    <Resource name="users" list={UserList} edit={UserEdit} create={UserCreate} icon={UserIcon} />
-    <Resource name="donaciones" list={DonadoresList} create={PostCreate} icon={PostIcon} />
+    <Resource name="usuarios" list={UserList} edit={UserEdit} create={UserCreate} icon={UserIcon} />
+    <Resource name="donaciones" list={DonadoresList} /*edit={DonadoresEdit}*/ create={DonadoresCreate} icon={PostIcon} />
     <Resource name="comments" list={CommentList} edit={CommentEdit} create={CommentCreate} icon={CommentIcon} />
     <Resource name="albums" list={AlbumList} edit={AlbumEdit} create={AlbumCreate} icon={AlbumIcon} />
     <Resource name="photos" list={PhotosList} edit={PhotosEdit} create={PhotosCreate} icon={PhotoIcon} />
