@@ -389,6 +389,58 @@ app.delete("/usuarios", async (request, response) => {
       }
 });
 
+//----------------------------
+// ENDPOINT
+// Editar un usuario
+//----------------------------
+app.put("/usuarios", async (request, response) => {
+  let connection = null;
+  try 
+    {
+      const data = request.body;
+      const formatData = CheckUsuarioEdit(data);
+      if (!formatData.status)
+      {
+        console.log("PUT /usuarios: FALSE\nFormato Incorrecto en JSON");
+        return response.status(200).json({ status: false });
+      }
+
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(usuariosCollection);
+      const result = await collection.updateOne({ _id: new ObjectId(data.id) }, 
+                            { $set: formatData.updateFields});
+      
+      //console.log(result);
+      
+      if (result.acknowledged && result.matchedCount === 1) 
+      {
+        console.log("PUT /usuarios: TRUE");
+        response.status(200).json({ status: true});
+      }
+      else
+      {
+        console.log("PUT /usuarios: FALSE\nAcknowledged: FALSE || matchedCount !== 1");
+        response.status(200).json({ status: false});
+      }
+      
+    }
+    catch (error) {
+        console.log("PUT /usuarios: FALSE\nCATCH");
+        response.status(500);
+        response.json({ status: false});
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("CCS!");
+        }
+        console.log("\n");
+      }
+});
+
 
 //----------------------------
 // ENDPOINT
