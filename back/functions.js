@@ -17,7 +17,7 @@ const reqUsuarioFields = [{"field": "usuario", "checkFunction": isString},
                         {"field": "nivel_acceso", "checkFunction": isNumber1_3}]
 
 
-// CHECK JSONS FORMAT FUNCTIONS
+//Funciones de checkeo del formato de JSON que necesita todos los fields (POST)
 function CheckJson(fields, json)
 {
 
@@ -50,7 +50,8 @@ export function CheckUsuario(json)
     return CheckJson(reqUsuarioFields, json);
 }
 
-export function CheckJsonEdit(fields, json)
+//Funciones de checkeo del formato de JSON que necesita id y uno o mas de los fields (PUT)
+function CheckJsonEdit(fields, json)
 {
     if ("id" === undefined 
         || !isID(json.id)) 
@@ -117,23 +118,23 @@ export function CheckUsuarioEdit(json)
 
 // Funciones de Check Type
 
-export function isPositiveNumber(n) 
+function isPositiveNumber(n) 
 {
     return Number.isFinite(n) && n > 0;
 }
 
-export function isString(s)
+function isString(s)
 {
     return typeof s === 'string' && s.length > 0;
 }
 
-export function isNumber1_3(n)
+function isNumber1_3(n)
 {
     return isPositiveNumber(n) && n >= 1 && n <= 3;
    
 }
 
-export function isJSON(json)
+function isJSON(json)
 {
     return typeof json === 'object';
 }
