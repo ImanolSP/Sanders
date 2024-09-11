@@ -264,6 +264,11 @@ app.get("/usuarios", async (request, response) => {
       result.forEach((usuario) => {
         delete usuario.contraseña;
       })
+      result.forEach(item => {
+        item.id = item._id;
+        delete item._id;  //La pagina necesita un componenete "id" pero mongo regresa "_id"
+   });
+
 
       response.setHeader('Content-Range', `donaciones 0-${result.length}/${result.length}`);
       response.setHeader('X-Total-Count', `${result.length}`);
@@ -362,7 +367,8 @@ app.delete("/usuarios", async (request, response) => {
       const collection = db.collection(usuariosCollection);
       const result = await collection.deleteOne({ _id: new ObjectId(data.id) });
       
-      //console.log(result);
+      console.log("RESULTADOS",result);
+      console.log("RESULTADOS2",data);
       if (result.acknowledged && result.deletedCount === 1) 
       {
         console.log("DELETE /usuarios: TRUE");
@@ -440,7 +446,39 @@ app.put("/usuarios", async (request, response) => {
         console.log("\n");
       }
 });
+//----------------------------
+// ENDPOINT
+// Usado para conseguir un usuario, este para poder ser editado
+//----------------------------
 
+app.get("/usuarios/:id", async (request, response) => {
+  let connection = null;
+  try {
+      const userId = request.params.id;
+      console.log("The user ID IS:",userId)
+      // Connect to DB
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(usuariosCollection);
+
+      // Find user by ID
+      const user = await collection.findOne({ _id: new ObjectId(userId) });
+      console.log("USER ID",user)
+      if (user) {
+        console.log("ENTERED THE USER TRUE")
+          response.status(200).json(user);
+      } else {
+          response.status(404).json({ message: "User does not exist" });
+      }
+  } catch (error) {
+      console.log(error);
+      response.status(500).json({ message: "Internal server error" });
+  } finally {
+      if (connection !== null) {
+          await connection.close();
+      }
+  }
+});
 
 //----------------------------
 // ENDPOINT
