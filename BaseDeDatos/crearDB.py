@@ -36,10 +36,13 @@ with open('./donaciones.json') as f:
     data = json.load(f)
     collection1.insert_many(data)
 
-with open ('./usuarios.json') as f:
+with open('./usuarios.json') as f:
     data = json.load(f)
     for i in data:
-        i["contraseña"] = hashInput(i["contraseña"])
+        if "contraseña" in i:
+            i["contraseña"] = hashInput(i["contraseña"])
+        else:
+            print(f"Advertencia: La clave 'contraseña' no se encuentra en el registro: {i}")
     collection2.insert_many(data)
 
 
