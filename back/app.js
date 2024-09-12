@@ -229,6 +229,11 @@ app.get("/usuarios", async (request, response) => {
       delete usuario.contraseña;
     });
 
+    result.forEach(item => {
+      item.id = item._id;
+      delete item._id;  // La pagina necesita un componenete "id" pero mongo regresa "_id"
+    });
+
     response.setHeader('Content-Range', `usuarios 0-${result.length}/${result.length}`);
     response.setHeader('X-Total-Count', `${result.length}`);
     response.status(200).json(result);
@@ -270,10 +275,10 @@ app.post("/usuarios", async (request, response) => {
 
     if (result.acknowledged) {
       console.log("POST /usuarios: TRUE");
-      response.status(200).json({ status: true, id: result.insertedId });
+      return response.status(200).json({ status: true, id: result.insertedId });
     } else {
       console.log("POST /usuarios: FALSE\nAcknowledged: FALSE");
-      response.status(500).json({ status: false, id: "" });
+      return response.status(500).json({ status: false, id: "" });
     }
   } catch (error) {
     console.log("POST /usuarios: FALSE\nCATCH");
@@ -368,13 +373,60 @@ app.put("/usuarios", async (request, response) => {
   }
 });
 
-// Load SSL certificates
-const options = {
+// ----------------------------
+// ENDPOINT
+// LOGIN
+// ----------------------------
+app.post("/login", async (request, response) => {
+  try {
+    const { usuario, contraseña } = request.body;
+
+    // Crear conexion a base de datos
+    const connection = await connectToDB();
+    const db = connection.db(dbName);
+    const collection = db.collection(usuariosCollection);
+    const user = await collection.findOne({ usuario });
+
+    if (!user || user.contraseña !== contraseña) {
+      console.log("POST /login: FALSE\nInvalid credentials");
+      return response.status(401).json({ status: false, token: "" });
+    }
+
+    const token = jwt.sign({ usuario: user.usuario, nivel_acceso: user.nivel_acceso }, SECRET_KEY, { expiresIn: '1h' });
+    console.log("POST /login: TRUE");
+    response.cookie('token', token, { httpOnly: true, secure: false }); // Set secure to true if using HTTPS
+    return response.status(200).json({ status: true, token });
+  } catch (error) {
+    console.log("POST /login: FALSE\nCATCH");
+    response.status(500).json({ status: false, token: "" });
+    console.log(error);
+  }
+});
+
+// ----------------------------
+// ENDPOINT
+// LOGOUT
+// ----------------------------
+app.post("/logout", (request, response) => {
+  response.clearCookie('token');
+  console.log("POST /logout: TRUE");
+  response.status(200).json({ status: true });
+});
+
+// ----------------------------
+// ENDPOINT
+// Proteger rutas usando middleware
+// ----------------------------
+app.use('/protected', verifyToken(1), (req, res) => {
+  res.status(200).json({ status: true, message: 'You have access to this protected route' });
+});
+
+// SSL Certificate Configuration
+const sslOptions = {
   key: fs.readFileSync('key.pem'),
   cert: fs.readFileSync('cert.pem')
 };
 
-// Create HTTPS server
-https.createServer(options, app).listen(port, () => {
-  console.log(`HTTPS Server running at https://localhost:${port}`);
+https.createServer(sslOptions, app).listen(port, () => {
+  console.log(`Server running on https://localhost:${port}`);
 });
