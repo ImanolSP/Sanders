@@ -22,9 +22,14 @@ export const basedatos={
     },
 
     getOne: async (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`
-        const { json } = await httpClient(url, { signal: params.signal });
-        return { data: json };
+        const url = `${apiUrl}/${resource}/${params.id}`;
+        const { json } = await httpClient(url);
+    
+        // Map the `_id` field to `id` for React Admin
+        const transformedData = { ...json, id: json._id };
+        delete transformedData._id;
+    
+        return { data: transformedData };
     },
 
     getMany: async (resource, params) => {
@@ -71,12 +76,18 @@ export const basedatos={
     },
 
     update: async (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`;
+        const url = `${apiUrl}/${resource}`; // No ID in the URL
         const { json } = await httpClient(url, {
             method: 'PUT',
-            body: JSON.stringify(params.data),
-        })
-        return { data: json };
+            body: JSON.stringify({
+                id: params.id,       // Include the ID in the body
+                ...params.data       // Merge the rest of the data
+            }),
+        });
+        const transformedData = { ...json, id: json._id };
+        delete transformedData._id;
+    
+        return { data: transformedData };
     },
 
     updateMany: async (resource, params) => {
@@ -92,9 +103,10 @@ export const basedatos={
     },
 
     delete: async (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`;
+        const url = `${apiUrl}/${resource}`; // No ID in the URL
         const { json } = await httpClient(url, {
             method: 'DELETE',
+            body: JSON.stringify({ id: params.id }) // Send ID in the body
         });
         return { data: json };
     },

@@ -1,4 +1,4 @@
-import {List,Datagrid,DateInput,TextField,SelectInput,TextInput,ReferenceInput,SimpleList,EmailField,ReferenceField, EditButton, Edit, Create,SimpleForm, NumberInput,required} from "react-admin"
+import {List,Datagrid,DateInput,TextField,SelectInput,TextInput,ReferenceInput,SimpleList,EmailField,ReferenceField, EditButton, Edit, Create,SimpleForm, NumberInput,required,DeleteButton} from "react-admin"
 export const DonadoresList = () => (
 
 <List>
@@ -8,7 +8,7 @@ export const DonadoresList = () => (
         <TextField source= "donador.nombre"/>
         <TextField source= "donador.apellido"/>
 <EditButton/>
-
+<DeleteButton/>
     </Datagrid>
 
 
@@ -16,7 +16,7 @@ export const DonadoresList = () => (
 
 );
 
-/*export const PostEdit = () => (
+export const DonadoresEdit = () => (
 <Edit>
     <SimpleForm>
 
@@ -34,9 +34,9 @@ export const DonadoresList = () => (
 
 
 
-)*/
+)
 
-export const PostCreate = ()=>(
+export const DonadoresCreate = ()=>(
     <Create>
         <SimpleForm>
         <NumberInput source="monto"></NumberInput>

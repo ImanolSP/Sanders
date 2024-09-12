@@ -225,9 +225,14 @@ app.get("/usuarios", async (request, response) => {
     const collection = db.collection(usuariosCollection);
     const result = await collection.find().toArray();
 
-    result.forEach((usuario) => {
-      delete usuario.contraseña;
-    });
+      //console.log(result);
+      result.forEach((usuario) => {
+        delete usuario.contraseña;
+      })
+      result.forEach(item => {
+        item.id = item._id;
+        delete item._id;  //La pagina necesita un componenete "id" pero mongo regresa "_id"
+   });
 
     result.forEach(item => {
       item.id = item._id;
@@ -300,8 +305,44 @@ app.post("/usuarios", async (request, response) => {
 // ----------------------------
 app.delete("/usuarios", async (request, response) => {
   let connection = null;
-  try {
-    const data = request.body;
+  try 
+    {
+      const data = request.body;
+
+      //Crear conexion a base de datos
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(usuariosCollection);
+      const result = await collection.deleteOne({ _id: new ObjectId(data.id) });
+      
+      console.log("RESULTADOS",result);
+      console.log("RESULTADOS2",data);
+      if (result.acknowledged && result.deletedCount === 1) 
+      {
+        console.log("DELETE /usuarios: TRUE");
+        response.status(200).json({ status: true});
+      }
+      else
+      {
+        console.log("DELETE /usuarios: FALSE\nAcknowledged: FALSE || DeletedCount !== 1");
+        response.status(200).json({ status: false});
+      }
+    }
+    catch (error) {
+        console.log("DELETE /usuarios: FALSE\nCATCH");
+        response.status(500);
+        response.json({ status: false});
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("CCS!");
+        }
+        console.log("\n");
+      }
+});
+
 
     // Crear conexion a base de datos
     connection = await connectToDB();
@@ -329,8 +370,42 @@ app.delete("/usuarios", async (request, response) => {
     console.log("\n");
   }
 });
+//----------------------------
+// ENDPOINT
+// Usado para conseguir un usuario, este para poder ser editado
+//----------------------------
 
-// ----------------------------
+=======
+app.get("/usuarios/:id", async (request, response) => {
+  let connection = null;
+  try {
+      const userId = request.params.id;
+      console.log("The user ID IS:",userId)
+      // Connect to DB
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(usuariosCollection);
+
+      // Find user by ID
+      const user = await collection.findOne({ _id: new ObjectId(userId) });
+      console.log("USER ID",user)
+      if (user) {
+        console.log("ENTERED THE USER TRUE")
+          response.status(200).json(user);
+      } else {
+          response.status(404).json({ message: "User does not exist" });
+      }
+  } catch (error) {
+      console.log(error);
+      response.status(500).json({ message: "Internal server error" });
+  } finally {
+      if (connection !== null) {
+          await connection.close();
+      }
+  }
+});
+
+//----------------------------
 // ENDPOINT
 // Editar un usuario
 // ----------------------------

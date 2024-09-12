@@ -1,4 +1,4 @@
-import {List,Datagrid,TextField,SelectInput,TextInput,ReferenceInput,SimpleList,EmailField,ReferenceField, EditButton, Edit, Create,SimpleForm, required} from "react-admin"
+import {List,Datagrid,TextField,SelectInput,TextInput,ReferenceInput,SimpleList,EmailField,ReferenceField, EditButton, Edit, Create,SimpleForm, required, NumberInput,DELETE, DeleteButton, ListNoResults} from "react-admin"
 import {useMediaQuery, Theme} from "@mui/material"
 
 export const UserList=()=>{
@@ -14,13 +14,10 @@ export const UserList=()=>{
             
         ):(
         <Datagrid>
-            <TextField source = "id"/>
-            <TextField source="phone"/>
-            <EmailField source = "email"/>
-            <TextField source = "name"/>
-            <TextField source = "company.catchPhrase"/>
-            <TextField source = "address.suite"/>
+            <TextField source = "usuario"/>
+            <TextField source="nivel_acceso"/>
             <EditButton/>
+            <DeleteButton />
         </Datagrid>
 
         )}
@@ -28,32 +25,23 @@ export const UserList=()=>{
 );
 };
 
-export const UserEdit = ()=>(
+export const UserEdit = () => (
     <Edit>
         <SimpleForm>
-            <TextInput source="id" InputProps={{disabled:true}}></TextInput>
-            <TextInput source="name"></TextInput>
-            <TextInput source="username"></TextInput>
-            <TextInput source="email"></TextInput>
-            <TextInput source="address.street"></TextInput>
-            <TextInput source="phone"></TextInput>
-            <TextInput source="website"></TextInput>
-            <TextInput source="company.name"></TextInput>
-            
+            <TextInput source="usuario" InputProps={{disabled:true}} />
+            <TextInput source="contraseña" type="password" InputProps={{disabled:true}} />
+            <NumberInput source="nivel_acceso" validate={required()} />
         </SimpleForm>
     </Edit>
-)
+);
+
 export const UserCreate = ()=>(
     <Create>
         <SimpleForm>
-            <TextInput source="id" validate={[required()]}></TextInput>
-            <TextInput source="name"></TextInput>
-            <TextInput source="username"></TextInput>
-            <TextInput source="email"></TextInput>
-            <TextInput source="address.street"></TextInput>
-            <TextInput source="phone"></TextInput>
-            <TextInput source="website"></TextInput>
-            <TextInput source="company.name"></TextInput>
+            <TextInput source="usuario"></TextInput>
+            <TextInput source="contraseña"></TextInput>
+            <NumberInput source="nivel_acceso"></NumberInput>
         </SimpleForm>
     </Create>
 )
+
