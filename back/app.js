@@ -7,17 +7,34 @@ import {CheckDonacion, CheckLogIn, CheckUsuario, CheckDonacionEdit, CheckUsuario
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import CryptoJS from 'crypto-js';
-import cookieParser from 'cookie-parser'; // Import cookie-parser
+import cookieParser from 'cookie-parser'; 
+import https from 'https';
+import fs  from 'fs';
+
 
 const app = express();
 const port = 3000;
 
+// Leer certificados SSL
+const privateKey = fs.readFileSync('BackEnd-HTTPS\\server.key', 'utf8');
+const certificate = fs.readFileSync('BackEnd-HTTPS\\server.crt', 'utf8');
+const ca = fs.readFileSync('BackEnd-HTTPS\\ca.crt', 'utf8');
+const credentials = { key: privateKey, cert: certificate, ca: ca };
+
+// Si no funciona el back, entren a loclahost:3000 y confien en la pagina 
+// Ruta para probar el backend en el navegador
+app.get('/', (req, res) => {
+  res.send('Su compu acepto la certificacion del backend'); // Mensaje que se verá en la ventana del navegador
+});
+
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:5173',  // Specify the exact origin of your frontend
+  origin: 'https://localhost:5173',  // Specify the exact origin of your frontend
   credentials: true,  
   exposedHeaders: ['Content-Range', 'X-Total-Count'], // Expose headers to the client
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 
 app.use(cookieParser()); // Use this middleware so the app can read cookies
 
@@ -503,8 +520,8 @@ app.post("/login", async (request, response) => {
         { expiresIn: '1h' }
       );
       response.cookie('token', token, {
-        httpOnly: true,
-        secure: false, // Set to true if using HTTPS
+        //httpOnly: true,
+        secure: true, // Set to true if using HTTPS
         sameSite: 'Strict'
       });
       response.status(200).json({ acceso: true, nivel_acceso: result[0]["nivel_acceso"] });
@@ -527,17 +544,21 @@ app.post("/login", async (request, response) => {
 //----------------------------
 app.post('/logout', (req, res) => {
   res.clearCookie('token', {
-    httpOnly: true,
-    secure: false, // falso pro ser HTTP
+    //httpOnly: true,
+    secure: true, // falso pro ser HTTP
     sameSite: 'Strict'
   });;
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
-app.listen(port, () => {
+/*app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+*/
 
+//Servidor HTTPS
+const httpsServer = https.createServer(credentials, app);
+httpsServer.listen(port, () => console.log(`Server running on port ${port} with HTTPS`));
 
 /*
 let connection = null;

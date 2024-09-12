@@ -1,7 +1,7 @@
 import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 
-const apiUrl = 'http://localhost:3000';
+const apiUrl = 'https://localhost:3000';
 const httpClient = fetchUtils.fetchJson;
 
 export const basedatos={
