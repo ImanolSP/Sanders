@@ -16,9 +16,9 @@ const app = express();
 const port = 3000;
 
 // Leer certificados SSL
-const privateKey = fs.readFileSync('BackEnd-HTTPS\\server.key', 'utf8');
-const certificate = fs.readFileSync('BackEnd-HTTPS\\server.crt', 'utf8');
-const ca = fs.readFileSync('BackEnd-HTTPS\\ca.crt', 'utf8');
+const privateKey = fs.readFileSync('BackEnd-HTTPS//server.key', 'utf8');
+const certificate = fs.readFileSync('BackEnd-HTTPS//server.crt', 'utf8');
+const ca = fs.readFileSync('BackEnd-HTTPS//ca.crt', 'utf8');
 const credentials = { key: privateKey, cert: certificate, ca: ca };
 
 // Si no funciona el back, entren a loclahost:3000 y confien en la pagina 
@@ -266,7 +266,7 @@ app.put("/donaciones", async (request, response) => {
 // Obtener todos las usuarios
 // en una lista
 //----------------------------
-app.get("/usuarios", async (request, response) => {
+app.get("/usuarios", /*verifyToken(1)*/ async (request, response) => {
   let connection = null;
   try 
     {
