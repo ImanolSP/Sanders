@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 
 app.use(express.json());
 app.use(cors({
-  origin: 'https://localhost:5173',  // Specify the exact origin of your frontend
+  origin:  ['https://localhost:5173', 'http://localhost:3001'],  // Specify the exact origin of your frontend
   credentials: true,  
   exposedHeaders: ['Content-Range', 'X-Total-Count'], // Expose headers to the client
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -84,6 +84,8 @@ app.post("/donaciones", async (request, response) => {
     {
       //Validar que el JSON recibido este correcto
       const data = request.body;
+      console.log(data);
+      
       if(!CheckDonacion(data))
       {     
         console.log("POST /donaciones: FALSE\nFormato Incorrecto en JSON");

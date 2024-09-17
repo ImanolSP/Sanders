@@ -23,7 +23,7 @@ function AddDonationEvent()
     json.donador.nombre = document.getElementById('nombre').value;
     json.donador.apellido = document.getElementById('apellido').value;
     json.donador.email = document.getElementById('correo').value;
-    json.monto = document.getElementById('monto').value;
+    json.monto = parseInt(document.getElementById('monto').value, 10);
     json.fecha = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
     
     
@@ -32,7 +32,7 @@ function AddDonationEvent()
     console.log(json);
     
     console.log("FETCHING!");
-    fetch("http://localhost:3000/donaciones", {
+    fetch("https://localhost:3000/donaciones", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
