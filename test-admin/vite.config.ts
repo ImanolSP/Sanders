@@ -11,8 +11,8 @@ export default defineConfig({
     },
     server: {
         https: {
-        key: fs.readFileSync(path.resolve(__dirname, 'FrontEnd-HTTPS\\server.key')),
-        cert: fs.readFileSync(path.resolve(__dirname, 'FrontEnd-HTTPS\\server.crt'))
+        key: fs.readFileSync(path.resolve(__dirname, 'FrontEnd-HTTPS//server.key')),
+        cert: fs.readFileSync(path.resolve(__dirname, 'FrontEnd-HTTPS//server.crt'))
     },},
     //server: {
         //host: true,

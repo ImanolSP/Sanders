@@ -1,10 +1,6 @@
 import {
   Admin,
   Resource,
-  ListGuesser,
-  EditGuesser,
-  ShowGuesser,
-  defaultTheme,
   houseLightTheme, 
   houseDarkTheme,
 } from "react-admin";
@@ -25,17 +21,23 @@ import { PhotosCreate, PhotosEdit, PhotosList } from "./photos";
 import { TodoCreate, TodoEdit, TodosList } from "./todos";
 import { MyLoginPage } from "./LogIn";
 import { basedatos } from './dataprovider';
+import { i18nProvider } from "./i18nProvider";
+import { spanishMessages } from "./languages";
+import {LanguageSwitcher} from "./laguageswitch";
 
 export const App = () => (
   <Admin
     loginPage={MyLoginPage}
     authProvider={authProvider}
+    i18nProvider={i18nProvider}
+    
     layout={Layout}
     dashboard={Dashboard}
     dataProvider={basedatos}
     theme={houseLightTheme}
     darkTheme={houseDarkTheme}
   >
+    <LanguageSwitcher />
     <Resource name="usuarios" list={UserList} edit={UserEdit} create={UserCreate} icon={UserIcon} />
     <Resource name="donaciones" list={DonadoresList} /*edit={DonadoresEdit}*/ create={DonadoresCreate} icon={PostIcon} />
     <Resource name="comments" list={CommentList} edit={CommentEdit} create={CommentCreate} icon={CommentIcon} />

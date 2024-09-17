@@ -5,8 +5,8 @@
   "main": "app.js",
   "type": "module",
   "scripts": {
-    "start": "node app.js",
-    "start:https": "node app.js --https",
+    "start": "nodemon app.js",
+    "start:https": "nodemon app.js",
     "test": "run"
   },
   "author": "",

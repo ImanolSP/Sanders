@@ -1,11 +1,9 @@
 import polyglotI18nProvider from 'ra-i18n-polyglot';
-import en from 'ra-language-english';
-import fr from 'ra-language-french';
-////TRADUCTOR FALTA POR ACABAR
-const translations = { en, fr };
+import { spanishMessages } from './languages';
+import { englishMessages } from './languages';
+
 
 export const i18nProvider = polyglotI18nProvider(
-    locale => translations[locale],
-    'en', // default locale
-    [{ locale: 'en', name: 'English' }, { locale: 'fr', name: 'Français' }],
+    locale => locale === 'es' ? spanishMessages : englishMessages, // Return the appropriate language messages
+    'en' // Default language is Spanish
 );
