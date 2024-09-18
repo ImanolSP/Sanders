@@ -1,6 +1,7 @@
 
 const reqDonacionFields = [{"field": "monto", "checkFunction": isPositiveNumber}, 
                             {"field": "fecha", "checkFunction": isString},
+                            {"field": "metodo", "checkFunction": isMetodo},
                             {"field": "donador", "checkFunction": isJSON}]
 
 
@@ -142,4 +143,9 @@ function isJSON(json)
 function isID(id)
 {
     return isString(id) && id.length === 24;
+}
+
+function isMetodo(metodo)
+{
+    return metodo === "manual" || metodo === "online";
 }

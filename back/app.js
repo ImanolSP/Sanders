@@ -84,7 +84,7 @@ app.post("/donaciones", async (request, response) => {
     {
       //Validar que el JSON recibido este correcto
       const data = request.body;
-      console.log(data);
+      //console.log(data);
       
       if(!CheckDonacion(data))
       {     

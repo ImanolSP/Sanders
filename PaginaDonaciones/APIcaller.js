@@ -13,6 +13,7 @@ function AddDonationEvent()
     let json = {
       "monto": 0,
       "fecha": "",
+      "metodo": "online",
       "donador": {
         "nombre": "",
         "apellido": "",
