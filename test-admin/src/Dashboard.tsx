@@ -22,6 +22,7 @@ export const Dashboard = () => {
   const [donationData, setDonationData] = useState<Donation[]>([]);
   const [viewBy, setViewBy] = useState<'donor' | 'date'>('date'); // State for data view (by donor or date)
 
+  console.log("printing donariondata",donationData);
   useEffect(() => {
     console.log("Permissions:", permissions);  // Debug permissions
   }, [permissions]);
@@ -32,17 +33,20 @@ export const Dashboard = () => {
       sort: { field: 'fecha', order: 'ASC' }
     })
     .then(response => {
-      // Generate a unique ID for each donation if not already provided
-      const dataWithId = response.data.map(donation => ({
-        ...donation,
-        id: uuidv4(),
-      }));
-      setDonationData(dataWithId);
+      setDonationData(response.data);
     })
     .catch(error => {
       console.error('Error fetching donation data:', error);
     });
   }, [dataProvider]);
+
+  // Sacar estadisticas
+  let totalDonationMoney = 0;
+  const uniqueDonations = donationData.length;
+  donationData.forEach((donation) => {
+    totalDonationMoney+= donation.monto;
+  });
+  const averageDonation = totalDonationMoney / uniqueDonations;
 
   // Prepare data for PieChart (hide donor name for executives)
   const pieChartData = donationData.reduce((acc, donation) => {
@@ -98,6 +102,27 @@ export const Dashboard = () => {
           </Card>
         </Grid>
       )}
+
+      {/* Donation Statistics */}
+<Grid item xs={12} md={6}>
+  <Card >
+    <CardHeader 
+      title="Donation Stats" 
+      style={{ fontWeight: 'bold', fontSize: '1.5rem', paddingBottom: '0' }} 
+    />
+    <CardContent>
+      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Number of Donations</h2>
+      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>{uniqueDonations}</h3>
+
+      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Money</h2>
+      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>${totalDonationMoney}</h3>
+
+      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Average Donation Amount</h2>
+      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>${averageDonation}</h3>
+    </CardContent>
+  </Card>
+</Grid>
+
 
       {/* Line Chart */}
       <Grid item xs={12} md={6}>
