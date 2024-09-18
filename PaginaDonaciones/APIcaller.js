@@ -14,6 +14,7 @@ function AddDonationEvent()
       "monto": 0,
       "fecha": "",
       "metodo": "online",
+      "editado": false,
       "donador": {
         "nombre": "",
         "apellido": "",

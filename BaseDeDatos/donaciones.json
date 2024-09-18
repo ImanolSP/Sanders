@@ -3,6 +3,7 @@
   "monto": 100,
   "fecha": "2020-08",
   "metodo": "manual",
+  "editado": false,
   "donador": {
     "nombre": "Micheal",
     "apellido": "Devlyn",
@@ -13,6 +14,7 @@
   "monto": 200,
   "fecha": "2022-08",
   "metodo": "manual",
+  "editado": false,
   "donador": {
     "nombre": "Tomas",
     "apellido": "Molina",
@@ -23,6 +25,7 @@
   "monto": 500,
   "fecha": "2024-08",
   "metodo": "online",
+  "editado": false,
   "donador": {
     "nombre": "Imanol",
     "apellido": "Santiesteban",
@@ -33,6 +36,7 @@
   "monto": 200,
   "fecha": "2024-04",
   "metodo": "online",
+  "editado": false,
   "donador": {
     "nombre": " Nicolas",
     "apellido": "Alarcon",

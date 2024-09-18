@@ -85,7 +85,8 @@ app.post("/donaciones", async (request, response) => {
       //Validar que el JSON recibido este correcto
       const data = request.body;
       //console.log(data);
-      
+
+      data.editado = false;
       if(!CheckDonacion(data))
       {     
         console.log("POST /donaciones: FALSE\nFormato Incorrecto en JSON");
@@ -224,6 +225,8 @@ app.put("/donaciones", async (request, response) => {
         console.log("PUT /donaciones: FALSE\nFormato Incorrecto en JSON");
         return response.status(200).json({ status: false });
       }
+
+      formatData.updateFields.editado = true;
 
       //Crear conexion a base de datos
       connection = await connectToDB();
