@@ -39,7 +39,7 @@ export const App = () => (
   >
     <LanguageSwitcher />
     <Resource name="usuarios" list={UserList} edit={UserEdit} create={UserCreate} icon={UserIcon} />
-    <Resource name="donaciones" list={DonadoresList} /*edit={DonadoresEdit}*/ create={DonadoresCreate} icon={PostIcon} />
+    <Resource name="donaciones" list={DonadoresList} edit={DonadoresEdit} create={DonadoresCreate} icon={PostIcon} />
     <Resource name="comments" list={CommentList} edit={CommentEdit} create={CommentCreate} icon={CommentIcon} />
     <Resource name="albums" list={AlbumList} edit={AlbumEdit} create={AlbumCreate} icon={AlbumIcon} />
     <Resource name="photos" list={PhotosList} edit={PhotosEdit} create={PhotosCreate} icon={PhotoIcon} />

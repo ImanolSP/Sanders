@@ -218,6 +218,7 @@ app.put("/donaciones", async (request, response) => {
   try 
     {
       const data = request.body;
+      console.log("THE EDIT DATA IS:",data);
       const formatData = CheckDonacionEdit(data);
       if (!formatData.status)
       {
@@ -309,6 +310,39 @@ app.get("/usuarios", /*verifyToken(1)*/ async (request, response) => {
         }
         console.log("\n");
       }
+});
+//----------------------------
+// ENDPOINT
+// Obtener la donación a editar
+//----------------------------
+
+app.get("/donaciones/:id", async (request, response) => {
+  let connection = null;
+  try {
+      const donacionId = request.params.id;
+      console.log("The donation ID IS:",donacionId)
+      // Connect to DB
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(donacionesCollection);
+
+      // Find dnacion by ID
+      const donID = await collection.findOne({ _id: new ObjectId(donacionId) });
+      console.log("donacion ID",donID)
+      if (donID) {
+        console.log("ENTERED THE USER TRUE")
+          response.status(200).json(donID);
+      } else {
+          response.status(404).json({ message: "Donation does not exist" });
+      }
+  } catch (error) {
+      console.log(error);
+      response.status(500).json({ message: "Internal server error" });
+  } finally {
+      if (connection !== null) {
+          await connection.close();
+      }
+  }
 });
 
 //----------------------------
