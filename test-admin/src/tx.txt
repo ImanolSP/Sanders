@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, Grid, Button, ButtonGroup } from "@mui/material";
-import { useDataProvider, RaRecord } from 'react-admin';
+import { useDataProvider, usePermissions, RaRecord } from 'react-admin';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -18,8 +18,14 @@ interface Donation extends RaRecord {
 
 export const Dashboard = () => {
   const dataProvider = useDataProvider();
+  const { permissions } = usePermissions();
   const [donationData, setDonationData] = useState<Donation[]>([]);
   const [viewBy, setViewBy] = useState<'donor' | 'date'>('date'); // State for data view (by donor or date)
+
+  console.log("printing donariondata",donationData);
+  useEffect(() => {
+    console.log("Permissions:", permissions);  // Debug permissions
+  }, [permissions]);
 
   useEffect(() => {
     dataProvider.getList<Donation>('donaciones', {
@@ -27,21 +33,29 @@ export const Dashboard = () => {
       sort: { field: 'fecha', order: 'ASC' }
     })
     .then(response => {
-      // Generate a unique ID for each donation if not already provided
-      const dataWithId = response.data.map(donation => ({
-        ...donation,
-        id: uuidv4(),
-      }));
-      setDonationData(dataWithId);
+      setDonationData(response.data);
     })
     .catch(error => {
       console.error('Error fetching donation data:', error);
     });
   }, [dataProvider]);
 
-  // Prepare data for PieChart
+  // Sacar estadisticas
+  let totalDonationMoney = 0;
+  const uniqueDonations = donationData.length;
+  donationData.forEach((donation) => {
+    totalDonationMoney+= donation.monto;
+  });
+  const averageDonation = totalDonationMoney / uniqueDonations;
+
+  // Prepare data for PieChart (hide donor name for executives)
   const pieChartData = donationData.reduce((acc, donation) => {
-    const key = viewBy === 'donor' ? donation.donador.nombre : donation.fecha;
+    const key = viewBy === 'donor' && permissions === 'admin' 
+      ? donation.donador.nombre // Show donor name for admin
+      : viewBy === 'date' 
+      ? donation.fecha // Show date for both
+      : 'Hidden'; // Hide donor name for executives
+
     const existingEntry = acc.find(entry => entry.name === key);
 
     if (existingEntry) {
@@ -53,9 +67,13 @@ export const Dashboard = () => {
     return acc;
   }, [] as { name: string; value: number }[]);
 
-  // Prepare data for BarChart
+  // Prepare data for BarChart (hide donor name for executives)
   const barChartData = donationData.map(donation => ({
-    name: viewBy === 'donor' ? donation.donador.nombre : donation.fecha,
+    name: viewBy === 'donor' && permissions === 'admin'
+      ? donation.donador.nombre // Show donor name for admin
+      : viewBy === 'date'
+      ? donation.fecha // Show date for both
+      : 'Hidden', // Hide donor name for executives
     monto: donation.monto,
   }));
 
@@ -72,16 +90,39 @@ export const Dashboard = () => {
       </Grid>
 
       {/* Toggle for View By */}
-      <Grid item xs={12}>
-        <Card>
-          <CardContent>
-            <ButtonGroup variant="contained" aria-label="outlined secondary button group">
-              <Button onClick={() => setViewBy('date')}>View by Date</Button>
-              <Button onClick={() => setViewBy('donor')}>View by Donor</Button>
-            </ButtonGroup>
-          </CardContent>
-        </Card>
-      </Grid>
+      {permissions === 'admin' && (
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <ButtonGroup variant="contained" aria-label="outlined secondary button group">
+                <Button onClick={() => setViewBy('date')}>View by Date</Button>
+                <Button onClick={() => setViewBy('donor')}>View by Donor</Button>
+              </ButtonGroup>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
+
+      {/* Donation Statistics */}
+<Grid item xs={12} md={6}>
+  <Card >
+    <CardHeader 
+      title="Donation Stats" 
+      style={{ fontWeight: 'bold', fontSize: '1.5rem', paddingBottom: '0' }} 
+    />
+    <CardContent>
+      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Number of Donations</h2>
+      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>{uniqueDonations}</h3>
+
+      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Money</h2>
+      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>${totalDonationMoney}</h3>
+
+      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Average Donation Amount</h2>
+      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>${averageDonation}</h3>
+    </CardContent>
+  </Card>
+</Grid>
+
 
       {/* Line Chart */}
       <Grid item xs={12} md={6}>
@@ -91,7 +132,7 @@ export const Dashboard = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={donationData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={viewBy === 'donor' ? 'donador.nombre' : 'fecha'} />
+                <XAxis dataKey={viewBy === 'donor' && permissions === 'admin' ? 'donador.nombre' : 'fecha'} />
                 <YAxis />
                 <Tooltip />
                 <Legend />
@@ -143,73 +184,137 @@ export const Dashboard = () => {
   );
 };
 
+--------------------------
+
+Donaciones:
+
+import {List,Datagrid,DateInput,TextField,SelectInput,TextInput,ReferenceInput,SimpleList,EmailField,ReferenceField, EditButton, Edit, Create,SimpleForm, NumberInput,required,DeleteButton,NumberInputProps,TextInputProps} from "react-admin"
+import { useWatch } from "react-hook-form";
+export const DonadoresList = () => (
+
+<List>
+    <Datagrid>
+        <TextField source="monto"/>
+        <TextField source="fecha"/>
+        <TextField source="metodo"/>
+        <TextField source= "donador.nombre"/>
+        <TextField source= "donador.apellido"/>
+<EditButton/>
+<DeleteButton/>
+    </Datagrid>
 
 
+</List>
 
+);
+const EditableDonationField1 = (props: NumberInputProps) => {
+    const metodoValue = useWatch({ name: 'metodo' });  // Watch the "metodo" field value
 
-
-import CryptoJS from 'crypto-js';
-
-export const authProv = {
-    login: async ({ username, password }) => {
-        // Hash the password using SHA-256
-        const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-        
-        try {
-            const response = await fetch('http://localhost:3000/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    usuario: username,
-                    contraseña: hashedPassword,
-                }),
-                credentials: 'include', // This ensures cookies are sent with the request
-            });
-
-            if (!response.ok) {
-                throw new Error('Login failed');
-            }
-
-            const data = await response.json();
-
-            if (data.acceso) {
-                localStorage.setItem('username', username);
-                console.log("nivel_acceso:",data.nivel_acceso);
-                localStorage.setItem('nivel_acceso',data.nivel_acceso);
-                // You no longer need to store the token in localStorage
-
-                return Promise.resolve();
-            } else {
-                return Promise.reject();
-            }
-        } catch (error) {
-            return Promise.reject(error);
-        }
-    },
-
-    logout: () => {
-        localStorage.removeItem("username");
-        localStorage.removeItem('nivel_acceso');
-        localStorage.removeItem("password"); // Remove the hashed password as well
-        return Promise.resolve();
-    },
-
-    checkError: ({ status }) => {
-        if (status === 401 || status === 403) {
-            localStorage.removeItem("username");
-            localStorage.removeItem("password"); // Remove the hashed password as well
-            return Promise.reject();
-        }
-        return Promise.resolve();
-    },
-
-    checkAuth: () => {
-        return localStorage.getItem("username")
-            ? Promise.resolve()
-            : Promise.reject();
-    },
-
-    getPermissions: () => Promise.resolve(),
+    return (
+        <NumberInput
+            {...props}
+            disabled={metodoValue !== 'manual'}  // Disable if "metodo" is not "manual"
+        />
+    );
 };
+const EditableDonationField2 = (props: TextInputProps) => {
+    const metodoValue = useWatch({ name: 'metodo' });  // Watch the "metodo" field value
+
+    return (
+        <TextInput
+            {...props}
+            disabled={metodoValue !== 'manual'}  // Disable if "metodo" is not "manual"
+        />
+    );
+};
+
+export const DonadoresEdit = () => (
+<Edit>
+    <SimpleForm>
+
+        <EditableDonationField2 source = "donador.nombre"/>
+        <EditableDonationField2 source = "donador.apellido"/>
+        <EditableDonationField2 source = "fecha"/>
+        <EditableDonationField1 source = "monto"/>
+    </SimpleForm>
+
+
+
+
+</Edit>
+
+
+
+
+
+)
+
+export const DonadoresCreate = ()=>(
+    <Create>
+        <SimpleForm>
+        <NumberInput source="monto"></NumberInput>
+        <DateInput source="fecha"></DateInput>
+        <TextInput source="metodo" defaultValue="manual" disabled/>
+        <TextInput source = "donador.nombre"></TextInput>
+        <TextInput source = "donador.apellido"></TextInput>
+        <TextInput source = "donador.email"></TextInput>
+        
+        </SimpleForm>
+    </Create>
+)
+
+
+------------App.tsx:
+// App.tsx
+import React from 'react';
+import { Admin, Resource } from 'react-admin';
+import { useMode, ColorModeContext } from './theme';
+import Layout from './layouts/Layout';
+import { UserCreate, UserEdit, UserList } from './Pages/Users/Users';
+import { DonadoresList, DonadoresCreate, DonadoresEdit } from './Pages/Donaciones/Donaciones';
+import { authProvider } from './providers/authProvider';
+import { Dashboard } from './Pages/Dashboard/Dashboard';
+import PostIcon from "@mui/icons-material/MonetizationOnOutlined";
+import UserIcon from "@mui/icons-material/PeopleOutlined";
+import { MyLoginPage } from "./LogIn";
+import { basedatos } from "./providers/dataprovider";
+import { i18nProvider } from "./providers/i18nProvider";
+import { ProSidebarProvider } from 'react-pro-sidebar';
+
+export const App = () => {
+  const [theme, colorMode] = useMode();
+
+  return (
+    <ColorModeContext.Provider value={colorMode}>
+      <ProSidebarProvider>
+      <Admin
+        loginPage={MyLoginPage}
+        authProvider={authProvider}
+        i18nProvider={i18nProvider}
+        layout={Layout}
+        dashboard={Dashboard}
+        dataProvider={basedatos}
+        theme={theme}
+      >
+        <Resource
+          name="usuarios"
+          list={UserList}
+          edit={UserEdit}
+          create={UserCreate}
+          icon={UserIcon}
+        />
+        <Resource
+          name="donaciones"
+          list={DonadoresList}
+          edit={DonadoresEdit}
+          create={DonadoresCreate}
+          icon={PostIcon}
+        />
+        {/* Otros recursos si los hay */}
+      </Admin>
+      </ProSidebarProvider>
+    </ColorModeContext.Provider>
+  );
+};
+
+export default App;
