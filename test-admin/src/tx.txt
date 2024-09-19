@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, Grid, Button, ButtonGroup } from "@mui/material";
 import { useDataProvider, usePermissions, RaRecord } from 'react-admin';
@@ -22,7 +23,6 @@ export const Dashboard = () => {
   const [donationData, setDonationData] = useState<Donation[]>([]);
   const [viewBy, setViewBy] = useState<'donor' | 'date'>('date'); // State for data view (by donor or date)
 
-  console.log("printing donariondata",donationData);
   useEffect(() => {
     console.log("Permissions:", permissions);  // Debug permissions
   }, [permissions]);
@@ -33,20 +33,17 @@ export const Dashboard = () => {
       sort: { field: 'fecha', order: 'ASC' }
     })
     .then(response => {
-      setDonationData(response.data);
+      // Generate a unique ID for each donation if not already provided
+      const dataWithId = response.data.map(donation => ({
+        ...donation,
+        id: uuidv4(),
+      }));
+      setDonationData(dataWithId);
     })
     .catch(error => {
       console.error('Error fetching donation data:', error);
     });
   }, [dataProvider]);
-
-  // Sacar estadisticas
-  let totalDonationMoney = 0;
-  const uniqueDonations = donationData.length;
-  donationData.forEach((donation) => {
-    totalDonationMoney+= donation.monto;
-  });
-  const averageDonation = totalDonationMoney / uniqueDonations;
 
   // Prepare data for PieChart (hide donor name for executives)
   const pieChartData = donationData.reduce((acc, donation) => {
@@ -102,27 +99,6 @@ export const Dashboard = () => {
           </Card>
         </Grid>
       )}
-
-      {/* Donation Statistics */}
-<Grid item xs={12} md={6}>
-  <Card >
-    <CardHeader 
-      title="Donation Stats" 
-      style={{ fontWeight: 'bold', fontSize: '1.5rem', paddingBottom: '0' }} 
-    />
-    <CardContent>
-      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Number of Donations</h2>
-      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>{uniqueDonations}</h3>
-
-      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Money</h2>
-      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>${totalDonationMoney}</h3>
-
-      <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Average Donation Amount</h2>
-      <h3 style={{ textAlign: 'center', fontSize: '2rem', marginTop: '10px' }}>${averageDonation}</h3>
-    </CardContent>
-  </Card>
-</Grid>
-
 
       {/* Line Chart */}
       <Grid item xs={12} md={6}>
@@ -184,137 +160,6 @@ export const Dashboard = () => {
   );
 };
 
---------------------------
-
-Donaciones:
-
-import {List,Datagrid,DateInput,TextField,SelectInput,TextInput,ReferenceInput,SimpleList,EmailField,ReferenceField, EditButton, Edit, Create,SimpleForm, NumberInput,required,DeleteButton,NumberInputProps,TextInputProps} from "react-admin"
-import { useWatch } from "react-hook-form";
-export const DonadoresList = () => (
-
-<List>
-    <Datagrid>
-        <TextField source="monto"/>
-        <TextField source="fecha"/>
-        <TextField source="metodo"/>
-        <TextField source= "donador.nombre"/>
-        <TextField source= "donador.apellido"/>
-<EditButton/>
-<DeleteButton/>
-    </Datagrid>
-
-
-</List>
-
-);
-const EditableDonationField1 = (props: NumberInputProps) => {
-    const metodoValue = useWatch({ name: 'metodo' });  // Watch the "metodo" field value
-
-    return (
-        <NumberInput
-            {...props}
-            disabled={metodoValue !== 'manual'}  // Disable if "metodo" is not "manual"
-        />
-    );
-};
-const EditableDonationField2 = (props: TextInputProps) => {
-    const metodoValue = useWatch({ name: 'metodo' });  // Watch the "metodo" field value
-
-    return (
-        <TextInput
-            {...props}
-            disabled={metodoValue !== 'manual'}  // Disable if "metodo" is not "manual"
-        />
-    );
-};
-
-export const DonadoresEdit = () => (
-<Edit>
-    <SimpleForm>
-
-        <EditableDonationField2 source = "donador.nombre"/>
-        <EditableDonationField2 source = "donador.apellido"/>
-        <EditableDonationField2 source = "fecha"/>
-        <EditableDonationField1 source = "monto"/>
-    </SimpleForm>
 
 
 
-
-</Edit>
-
-
-
-
-
-)
-
-export const DonadoresCreate = ()=>(
-    <Create>
-        <SimpleForm>
-        <NumberInput source="monto"></NumberInput>
-        <DateInput source="fecha"></DateInput>
-        <TextInput source="metodo" defaultValue="manual" disabled/>
-        <TextInput source = "donador.nombre"></TextInput>
-        <TextInput source = "donador.apellido"></TextInput>
-        <TextInput source = "donador.email"></TextInput>
-        
-        </SimpleForm>
-    </Create>
-)
-
-
-------------App.tsx:
-// App.tsx
-import React from 'react';
-import { Admin, Resource } from 'react-admin';
-import { useMode, ColorModeContext } from './theme';
-import Layout from './layouts/Layout';
-import { UserCreate, UserEdit, UserList } from './Pages/Users/Users';
-import { DonadoresList, DonadoresCreate, DonadoresEdit } from './Pages/Donaciones/Donaciones';
-import { authProvider } from './providers/authProvider';
-import { Dashboard } from './Pages/Dashboard/Dashboard';
-import PostIcon from "@mui/icons-material/MonetizationOnOutlined";
-import UserIcon from "@mui/icons-material/PeopleOutlined";
-import { MyLoginPage } from "./LogIn";
-import { basedatos } from "./providers/dataprovider";
-import { i18nProvider } from "./providers/i18nProvider";
-import { ProSidebarProvider } from 'react-pro-sidebar';
-
-export const App = () => {
-  const [theme, colorMode] = useMode();
-
-  return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ProSidebarProvider>
-      <Admin
-        loginPage={MyLoginPage}
-        authProvider={authProvider}
-        i18nProvider={i18nProvider}
-        layout={Layout}
-        dashboard={Dashboard}
-        dataProvider={basedatos}
-        theme={theme}
-      >
-        <Resource
-          name="usuarios"
-          list={UserList}
-          edit={UserEdit}
-          create={UserCreate}
-          icon={UserIcon}
-        />
-        <Resource
-          name="donaciones"
-          list={DonadoresList}
-          edit={DonadoresEdit}
-          create={DonadoresCreate}
-          icon={PostIcon}
-        />
-        {/* Otros recursos si los hay */}
-      </Admin>
-      </ProSidebarProvider>
-    </ColorModeContext.Provider>
-  );
-};
-
-export default App;
