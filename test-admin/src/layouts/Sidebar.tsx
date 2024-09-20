@@ -105,7 +105,7 @@ const SidebarComponent: React.FC = () => {
                   Fundación Sanders
                 </Typography>
                 <Typography variant="h5" color={colors.greenAccent[500]}>
-                  Tu Lema Aquí
+                  Water to where it is needed 
                 </Typography>
               </Box>
             </Box>
@@ -127,7 +127,7 @@ const SidebarComponent: React.FC = () => {
               color={colors.grey[300]}
               sx={{ m: '15px 0 5px 20px' }}
             >
-              Gestión
+              Management
             </Typography>
 
             <MenuItem

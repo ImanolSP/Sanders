@@ -1,165 +1,116 @@
+// src/Pages/Users/Users.tsx
+import {
+  List,
+  Datagrid,
+  TextField,
+  TextInput,
+  SimpleList,
+  EditButton,
+  Edit,
+  Create,
+  SimpleForm,
+  required,
+  NumberInput,
+  DeleteButton,
+  TopToolbar,
+  useListContext,
+  ListProps,
+} from "react-admin";
+import { tokens } from "../../theme";
+import { Button, useTheme, useMediaQuery, Theme } from "@mui/material";
+import { exportData } from "../../componentes/Export"; // Importamos la función de exportación
+import { LayoutButton } from "../../layouts/Layout"; // Importamos el LayoutButton
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, Grid, Button, ButtonGroup } from "@mui/material";
-import { useDataProvider, usePermissions, RaRecord } from 'react-admin';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
-import { v4 as uuidv4 } from 'uuid';
+// Toolbar personalizada para exportar datos
+const ListActions = () => {
+  const { data } = useListContext(); // Utilizamos el contexto para acceder a los datos de la lista
 
-// Define the Donation interface to match your data
-interface Donation extends RaRecord {
-  id: string;
-  monto: number;
-  fecha: string;
-  donador: {
-    nombre: string;
-    apellido: string;
-    email: string;
-  };
-}
-
-export const Dashboard = () => {
-  const dataProvider = useDataProvider();
-  const { permissions } = usePermissions();
-  const [donationData, setDonationData] = useState<Donation[]>([]);
-  const [viewBy, setViewBy] = useState<'donor' | 'date'>('date'); // State for data view (by donor or date)
-
-  useEffect(() => {
-    console.log("Permissions:", permissions);  // Debug permissions
-  }, [permissions]);
-
-  useEffect(() => {
-    dataProvider.getList<Donation>('donaciones', {
-      pagination: { page: 1, perPage: 100 }, 
-      sort: { field: 'fecha', order: 'ASC' }
-    })
-    .then(response => {
-      // Generate a unique ID for each donation if not already provided
-      const dataWithId = response.data.map(donation => ({
-        ...donation,
-        id: uuidv4(),
-      }));
-      setDonationData(dataWithId);
-    })
-    .catch(error => {
-      console.error('Error fetching donation data:', error);
-    });
-  }, [dataProvider]);
-
-  // Prepare data for PieChart (hide donor name for executives)
-  const pieChartData = donationData.reduce((acc, donation) => {
-    const key = viewBy === 'donor' && permissions === 'admin' 
-      ? donation.donador.nombre // Show donor name for admin
-      : viewBy === 'date' 
-      ? donation.fecha // Show date for both
-      : 'Hidden'; // Hide donor name for executives
-
-    const existingEntry = acc.find(entry => entry.name === key);
-
-    if (existingEntry) {
-      existingEntry.value += donation.monto;
+  const handleExport = (format: "xlsx" | "pdf" | "csv") => {
+    if (data && data.length > 0) {
+      exportData(data, format);
     } else {
-      acc.push({ name: key, value: donation.monto });
+      console.error("No hay datos para exportar.");
     }
-
-    return acc;
-  }, [] as { name: string; value: number }[]);
-
-  // Prepare data for BarChart (hide donor name for executives)
-  const barChartData = donationData.map(donation => ({
-    name: viewBy === 'donor' && permissions === 'admin'
-      ? donation.donador.nombre // Show donor name for admin
-      : viewBy === 'date'
-      ? donation.fecha // Show date for both
-      : 'Hidden', // Hide donor name for executives
-    monto: donation.monto,
-  }));
+  };
 
   return (
-    <Grid container spacing={3}>
-      {/* Welcome Card */}
-      <Grid item xs={12}>
-        <Card>
-          <CardHeader title="Welcome to the Admin Dashboard" />
-          <CardContent>
-            <p>Manage and monitor donations efficiently.</p>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Toggle for View By */}
-      {permissions === 'admin' && (
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <ButtonGroup variant="contained" aria-label="outlined secondary button group">
-                <Button onClick={() => setViewBy('date')}>View by Date</Button>
-                <Button onClick={() => setViewBy('donor')}>View by Donor</Button>
-              </ButtonGroup>
-            </CardContent>
-          </Card>
-        </Grid>
-      )}
-
-      {/* Line Chart */}
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardHeader title="Donations Over Time" />
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={donationData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={viewBy === 'donor' && permissions === 'admin' ? 'donador.nombre' : 'fecha'} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="monto" stroke="#8884d8" activeDot={{ r: 8 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Pie Chart */}
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardHeader title="Donations Distribution" />
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie dataKey="value" data={pieChartData} cx="50%" cy="50%" outerRadius={80} fill="#82ca9d" label>
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={['#8884d8', '#8dd1e1', '#82ca9d', '#ffc658'][index % 4]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Bar Chart */}
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardHeader title="Donations Comparison" />
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={barChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="monto" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+    <TopToolbar>
+      <LayoutButton onClick={() => handleExport("xlsx")}>
+        Exportar a Excel
+      </LayoutButton>
+      <LayoutButton onClick={() => handleExport("pdf")}>
+        Exportar a PDF
+      </LayoutButton>
+      <LayoutButton onClick={() => handleExport("csv")}>
+        Exportar a CSV
+      </LayoutButton>
+    </TopToolbar>
   );
 };
 
+export const UserList = (props: ListProps) => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const isSmall = useMediaQuery<Theme>((theme) => theme.breakpoints.down("sm"));
 
+  return (
+    <List {...props} actions={<ListActions />} exporter={false}>
+      {isSmall ? (
+        <SimpleList
+          primaryText={(record) => record.usuario}
+          secondaryText={(record) => `Nivel de Acceso: ${record.nivel_acceso}`}
+          sx={{
+            "& .RaSimpleList-primaryText": {
+              fontSize: "18px", // Aumenta el tamaño de la letra
+            },
+            "& .RaSimpleList-secondaryText": {
+              fontSize: "16px",
+            },
+          }}
+        />
+      ) : (
+        <Datagrid
+          rowClick="edit"
+          sx={{
+            "& .RaDatagrid-row": {
+              fontSize: "30px", // Aumenta el tamaño de la letra
+              height: "60px", // Aumenta la altura de las filas
+            },
+          }}
+        >
+          <TextField source="usuario" />
+          <TextField source="nivel_acceso" />
+          <EditButton
+            sx={{
+              color: colors.greenAccent[500],
+              "&:hover": {
+                color: colors.greenAccent[100],
+              },
+            }}
+          />
+          <DeleteButton />
+        </Datagrid>
+      )}
+    </List>
+  );
+};
 
+export const UserEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="usuario" disabled />
+      <TextInput source="contraseña" type="password" disabled />
+      <NumberInput source="nivel_acceso" validate={required()} />
+    </SimpleForm>
+  </Edit>
+);
 
+export const UserCreate = () => (
+  <Create>
+    <SimpleForm>
+      <TextInput source="usuario" />
+      <TextInput source="contraseña" type="password" />
+      <NumberInput source="nivel_acceso" />
+    </SimpleForm>
+  </Create>
+);
