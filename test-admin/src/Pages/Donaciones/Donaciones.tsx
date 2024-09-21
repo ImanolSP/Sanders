@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   List,
   Datagrid,
@@ -16,19 +16,19 @@ import {
   TopToolbar,
   useListContext,
   ListProps,
-  DateInput
-} from 'react-admin';
+  DateInput,
+} from "react-admin";
 import { Button } from "@mui/material";
 import { exportData } from "../../componentes/Export"; // Importamos la función
 import { useTheme } from "@mui/material/styles";
 import { tokens } from "../../theme";
 import { useMediaQuery, Theme } from "@mui/material";
-import { LayoutButton } from '../../layouts/Layout'; 
+import { LayoutButton } from "../../layouts/Layout";
 
 // Material-UI Icons
-import DescriptionIcon from '@mui/icons-material/Description'; // For Excel
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'; // For PDF
-import GridOnIcon from '@mui/icons-material/GridOn'; // For CSV
+import DescriptionIcon from "@mui/icons-material/Description"; // For Excel
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf"; // For PDF
+import GridOnIcon from "@mui/icons-material/GridOn"; // For CSV
 
 interface Donador {
   nombre?: string;
@@ -52,23 +52,32 @@ export const DonadoresList = (props: ListProps) => {
   const ListActions = () => {
     const { data } = useListContext<DonacionRecord>(); // Ahora usamos useListContext dentro del contexto correcto
 
-    const handleExport = (format: 'xlsx' | 'pdf' | 'csv') => {
+    const handleExport = (format: "xlsx" | "pdf" | "csv") => {
       if (data && data.length > 0) {
         exportData(data, format);
       } else {
-        console.error('No hay datos para exportar.');
+        console.error("No hay datos para exportar.");
       }
     };
 
     return (
       <TopToolbar>
-        <LayoutButton onClick={() => handleExport('xlsx')} startIcon={<DescriptionIcon />}>
+        <LayoutButton
+          onClick={() => handleExport("xlsx")}
+          startIcon={<DescriptionIcon />}
+        >
           Excel
         </LayoutButton>
-        <LayoutButton onClick={() => handleExport('pdf')} startIcon={<PictureAsPdfIcon />}>
+        <LayoutButton
+          onClick={() => handleExport("pdf")}
+          startIcon={<PictureAsPdfIcon />}
+        >
           PDF
         </LayoutButton>
-        <LayoutButton onClick={() => handleExport('csv')} startIcon={<GridOnIcon />}>
+        <LayoutButton
+          onClick={() => handleExport("csv")}
+          startIcon={<GridOnIcon />}
+        >
           CSV
         </LayoutButton>
       </TopToolbar>
@@ -83,10 +92,14 @@ export const DonadoresList = (props: ListProps) => {
     >
       {isSmall ? (
         <SimpleList
+
           primaryText={(record) => `Monto: $${record.monto}`}
-          secondaryText={(record) => `Donador: ${record.donador?.nombre} ${record.donador?.apellido}`}
+          secondaryText={(record) =>
+            `Donador: ${record.donador?.nombre} ${record.donador?.apellido}`
+          }
           tertiaryText={(record) => `Fecha: ${record.fecha}`}
           sx={{
+
             "& .RaSimpleList-primaryText": {
               fontSize: "18px", // Aumenta el tamaño de la letra
             },
@@ -102,16 +115,28 @@ export const DonadoresList = (props: ListProps) => {
         <Datagrid
           rowClick="edit"
           sx={{
+            backgroundColor: colors.primary[400],
             "& .RaDatagrid-row": {
               fontSize: "30px", // Aumenta el tamaño de la letra
               height: "60px", // Aumenta la altura de las filas
             },
           }}
         >
-          <NumberField source="monto" options={{ style: 'currency', currency: 'USD' }} />
+          <NumberField
+            source="monto"
+            options={{ style: "currency", currency: "USD" }}
+          />
           <DateField source="fecha" />
-          <TextField source="donador.nombre" label="Nombre del Donador" emptyText="-" />
-          <TextField source="donador.apellido" label="Apellido del Donador" emptyText="-" />
+          <TextField
+            source="donador.nombre"
+            label="Nombre del Donador"
+            emptyText="-"
+          />
+          <TextField
+            source="donador.apellido"
+            label="Apellido del Donador"
+            emptyText="-"
+          />
           <EditButton
             sx={{
               color: colors.greenAccent[500],

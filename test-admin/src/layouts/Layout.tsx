@@ -14,7 +14,7 @@ const CustomizedLayout = styled(RALayout)(({ theme }) => ({
     height: "100vh", // Asegura que el contenido con el Sidebar ocupe toda la altura de la ventana
     marginTop: "64px",
     [theme.breakpoints.up("sm")]: {
-      marginTop: "72px",
+      marginTop: "1px",
     },
   },
   "& .RaLayout-content": {

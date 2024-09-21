@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, Grid, Button, ButtonGroup } from "@mui/m
 import { useDataProvider, usePermissions, RaRecord } from 'react-admin';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { v4 as uuidv4 } from 'uuid';
+import { tokens } from "../../theme";
+
+
 
 // Define the Donation interface to match your data structure
 interface Donation extends RaRecord {
@@ -79,10 +82,12 @@ export const Dashboard = () => {
     monto: donation.monto,
   }));
 
+
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3}
+    >
       {/* Welcome Card */}
-      <Grid item xs={12}>
+      <Grid item xs={10}>
         <Card>
           <CardHeader title="Welcome to the Admin Dashboard" />
           <CardContent>

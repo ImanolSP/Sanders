@@ -76,6 +76,7 @@ export const UserList = (props: ListProps) => {
         <Datagrid
           rowClick="edit"
           sx={{
+            backgroundColor: colors.primary[400],
             "& .RaDatagrid-row": {
               fontSize: "30px", // Aumenta el tamaño de la letra
               height: "60px", // Aumenta la altura de las filas
