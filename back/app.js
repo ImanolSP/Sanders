@@ -10,7 +10,7 @@ import CryptoJS from 'crypto-js';
 import cookieParser from 'cookie-parser'; 
 import https from 'https';
 import fs  from 'fs';
-import enviarCorreo from './correo.js';
+import enviarCorreo from "./correo.js";
 
 
 const app = express();
@@ -72,11 +72,13 @@ const verifyToken = (requiredAccessLevel) => {
   };
 };
 
+
+
+
 //----------------------------
 // ENDPOINT
 // Crear una donacion
 //----------------------------
-
 app.post("/donaciones", async (request, response) => {
   let connection = null;
   try 
@@ -84,8 +86,7 @@ app.post("/donaciones", async (request, response) => {
       //Validar que el JSON recibido este correcto
       const data = request.body;
       //console.log(data);
-
-      data.editado = false;
+      
       if(!CheckDonacion(data))
       {     
         console.log("POST /donaciones: FALSE\nFormato Incorrecto en JSON");
@@ -100,33 +101,36 @@ app.post("/donaciones", async (request, response) => {
       const collection = db.collection(donacionesCollection);
       const result = await collection.insertOne(data);
 
-    if (result.acknowledged) {
-      console.log("POST /donaciones: TRUE");
-
-      // Obtener el correo electrónico del donador
-      const emailDonador = data.donador.email;
-      const nombreDonador = data.donador.nombre;
-
-      // Enviar correo de agradecimiento
+      // Obtener el correo electrónico del donador 
+      const emailDonador = data.donador.email; 
+      const nombreDonador = data.donador.nombre; 
+      
+      // Enviar correo de agradecimiento 
       enviarCorreo(emailDonador, nombreDonador)
 
-      // Enviar respuesta al cliente
-      return response.status(200).json({ status: true, id: result.insertedId });
-    } else {
-      console.log("POST /donaciones: FALSE\nAcknowledged: FALSE");
-      return response.status(500).json({ status: false, id: "" });
+      if (result.acknowledged)
+      {
+        console.log("POST /donaciones: TRUE");
+        return response.status(200).json({ status: true, id: result.insertedId });
+      }
+      else {
+        console.log("POST /donaciones: FALSE\nAcknowledged: FALSE");
+        return response.status(500).json({ status: false, id: "" });
+      }
     }
-  } catch (error) {
-    console.log("POST /donaciones: FALSE\nCATCH");
-    response.status(500).json({ status: false, id: "" });
-    console.log(error);
-  } finally {
-    if (connection !== null) {
-      await connection.close();
-      console.log("CCS!");
-    }
-    console.log("\n");
-  }
+    catch (error) {
+        console.log("POST /donaciones: FALSE\nCATCH");
+        response.status(500);
+        response.json({ status: false, id: "" });
+        console.log(error);
+      }
+      finally {
+        if (connection !== null) {
+          await connection.close();
+          console.log("CCS!");
+        }
+        console.log("\n");
+      }
 });
 
 //----------------------------
@@ -229,8 +233,6 @@ app.put("/donaciones", async (request, response) => {
         console.log("PUT /donaciones: FALSE\nFormato Incorrecto en JSON");
         return response.status(200).json({ status: false });
       }
-
-      formatData.updateFields.editado = true;
 
       //Crear conexion a base de datos
       connection = await connectToDB();
