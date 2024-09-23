@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
+import path from 'path';
 
 // Create the transporter with the required configuration for Gmail
 const enviarCorreo = async (destinatario, nombre) => {  
-  console.log('Iniciando el envío de correo...');
   
   let transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -14,18 +14,27 @@ const enviarCorreo = async (destinatario, nombre) => {
     },
   });
 
-  console.log('Transporter creado.');
-
   // Setup email data
   let mailOptions = {
       from: 'pruebasfundacionsanders@gmail.com', // dirección del remitente
       to: destinatario, // lista de destinatarios
       subject: 'Muchas Gracias', // línea de asunto
       text: `Muchas gracias ${nombre} por tu donación`, // cuerpo en texto plano
-      html: `<p>Muchas gracias <strong>${nombre}</strong> por tu donación</p>` // cuerpo en HTML
+      html: `
+      <div style="text-align: center; font-family: Arial, sans-serif; color: #333;">
+        <h1 style="color: #192559;">La Fundación Sanders te agradece</h1>
+        <p>Muchas gracias <strong>${nombre}</strong> por tu donación</p>
+        <img src="cid:sanders" alt="Gracias" style="width: 100%; max-width: 400px; height: auto;" />
+      </div>
+    `,
+      attachments: [
+        {
+          filename: 'sanders.jpg',
+          path: 'https://imagizer.imageshack.com/img924/5995/EXOaFi.jpg',
+          cid: 'sanders' // same cid as in the html img src
+        }
+      ]
   };
-
-  console.log('Opciones del correo configuradas:', mailOptions);
 
   // Send mail with defined transport object
   transporter.sendMail(mailOptions, function(error, info) {
