@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, Grid, Button, ButtonGroup } from "@mui/material";
-import { useDataProvider, RaRecord } from 'react-admin';
+import { useDataProvider, usePermissions, RaRecord } from 'react-admin';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { v4 as uuidv4 } from 'uuid';
+import { tokens } from "../../theme";
 
-// Define the Donation interface to match your data
+
+
+// Define the Donation interface to match your data structure
 interface Donation extends RaRecord {
   id: string;
   monto: number;
@@ -18,12 +21,17 @@ interface Donation extends RaRecord {
 
 export const Dashboard = () => {
   const dataProvider = useDataProvider();
+  const { permissions } = usePermissions();
   const [donationData, setDonationData] = useState<Donation[]>([]);
   const [viewBy, setViewBy] = useState<'donor' | 'date'>('date'); // State for data view (by donor or date)
 
   useEffect(() => {
+    console.log("Permissions:", permissions);  // Debug permissions
+  }, [permissions]);
+
+  useEffect(() => {
     dataProvider.getList<Donation>('donaciones', {
-      pagination: { page: 1, perPage: 100 }, 
+      pagination: { page: 1, perPage: 100 },
       sort: { field: 'fecha', order: 'ASC' }
     })
     .then(response => {
@@ -39,9 +47,21 @@ export const Dashboard = () => {
     });
   }, [dataProvider]);
 
-  // Prepare data for PieChart
+  // Calculating statistics for donations
+  let totalDonationMoney = 0;
+  const uniqueDonations = donationData.length;
+  donationData.forEach((donation) => {
+    totalDonationMoney += donation.monto;
+  });
+  const averageDonation = totalDonationMoney / uniqueDonations;
+
   const pieChartData = donationData.reduce((acc, donation) => {
-    const key = viewBy === 'donor' ? donation.donador.nombre : donation.fecha;
+    const key = viewBy === 'donor' && permissions === 'admin'
+      ? donation.donador.nombre // Show donor name for admin
+      : viewBy === 'date'
+      ? donation.fecha // Show date for both
+      : 'Hidden'; // Hide donor name for executives
+
     const existingEntry = acc.find(entry => entry.name === key);
 
     if (existingEntry) {
@@ -53,14 +73,19 @@ export const Dashboard = () => {
     return acc;
   }, [] as { name: string; value: number }[]);
 
-  // Prepare data for BarChart
   const barChartData = donationData.map(donation => ({
-    name: viewBy === 'donor' ? donation.donador.nombre : donation.fecha,
+    name: viewBy === 'donor' && permissions === 'admin'
+      ? donation.donador.nombre // Show donor name for admin
+      : viewBy === 'date'
+      ? donation.fecha // Show date for both
+      : 'Hidden', // Hide donor name for executives
     monto: donation.monto,
   }));
 
+
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3}
+    >
       {/* Welcome Card */}
       <Grid item xs={12}>
         <Card>
@@ -72,16 +97,18 @@ export const Dashboard = () => {
       </Grid>
 
       {/* Toggle for View By */}
-      <Grid item xs={12}>
-        <Card>
-          <CardContent>
-            <ButtonGroup variant="contained" aria-label="outlined secondary button group">
-              <Button onClick={() => setViewBy('date')}>View by Date</Button>
-              <Button onClick={() => setViewBy('donor')}>View by Donor</Button>
-            </ButtonGroup>
-          </CardContent>
-        </Card>
-      </Grid>
+      {permissions === 'admin' && (
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <ButtonGroup variant="contained" aria-label="outlined secondary button group">
+                <Button onClick={() => setViewBy('date')}>View by Date</Button>
+                <Button onClick={() => setViewBy('donor')}>View by Donor</Button>
+              </ButtonGroup>
+            </CardContent>
+          </Card>
+        </Grid>
+      )}
 
       {/* Line Chart */}
       <Grid item xs={12} md={6}>
@@ -91,7 +118,7 @@ export const Dashboard = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={donationData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={viewBy === 'donor' ? 'donador.nombre' : 'fecha'} />
+                <XAxis dataKey={viewBy === 'donor' && permissions === 'admin' ? 'donador.nombre' : 'fecha'} />
                 <YAxis />
                 <Tooltip />
                 <Legend />
@@ -139,77 +166,24 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </Grid>
+
+      {/* Donation Statistics */}
+      <Grid item xs={12} md={6}>
+        <Card>
+          <CardHeader
+            title="Donation Stats"
+            style={{ fontWeight: 'bold', fontSize: '1.5rem', paddingBottom: '0' }}
+          />
+          <CardContent>
+            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Number of Donations</h2>
+            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>{uniqueDonations}</h3>
+            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Money</h2>
+            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${totalDonationMoney}</h3>
+            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Average Donation Amount</h2>
+            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${averageDonation}</h3>
+          </CardContent>
+        </Card>
+      </Grid>
     </Grid>
   );
-};
-
-
-
-
-
-
-import CryptoJS from 'crypto-js';
-
-export const authProv = {
-    login: async ({ username, password }) => {
-        // Hash the password using SHA-256
-        const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-        
-        try {
-            const response = await fetch('http://localhost:3000/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    usuario: username,
-                    contraseña: hashedPassword,
-                }),
-                credentials: 'include', // This ensures cookies are sent with the request
-            });
-
-            if (!response.ok) {
-                throw new Error('Login failed');
-            }
-
-            const data = await response.json();
-
-            if (data.acceso) {
-                localStorage.setItem('username', username);
-                console.log("nivel_acceso:",data.nivel_acceso);
-                localStorage.setItem('nivel_acceso',data.nivel_acceso);
-                // You no longer need to store the token in localStorage
-
-                return Promise.resolve();
-            } else {
-                return Promise.reject();
-            }
-        } catch (error) {
-            return Promise.reject(error);
-        }
-    },
-
-    logout: () => {
-        localStorage.removeItem("username");
-        localStorage.removeItem('nivel_acceso');
-        localStorage.removeItem("password"); // Remove the hashed password as well
-        return Promise.resolve();
-    },
-
-    checkError: ({ status }) => {
-        if (status === 401 || status === 403) {
-            localStorage.removeItem("username");
-            localStorage.removeItem("password"); // Remove the hashed password as well
-            return Promise.reject();
-        }
-        return Promise.resolve();
-    },
-
-    checkAuth: () => {
-        return localStorage.getItem("username")
-            ? Promise.resolve()
-            : Promise.reject();
-    },
-
-    getPermissions: () => Promise.resolve(),
 };

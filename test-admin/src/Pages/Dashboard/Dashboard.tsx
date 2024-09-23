@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, Grid, Button, ButtonGroup } from "@mui/m
 import { useDataProvider, usePermissions, RaRecord } from 'react-admin';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { v4 as uuidv4 } from 'uuid';
+import { tokens } from "../../theme";
 
-// Define the Donation interface to match your data
+
+
+// Define the Donation interface to match your data structure
 interface Donation extends RaRecord {
   id: string;
   monto: number;
@@ -28,7 +31,7 @@ export const Dashboard = () => {
 
   useEffect(() => {
     dataProvider.getList<Donation>('donaciones', {
-      pagination: { page: 1, perPage: 100 }, 
+      pagination: { page: 1, perPage: 100 },
       sort: { field: 'fecha', order: 'ASC' }
     })
     .then(response => {
@@ -44,11 +47,18 @@ export const Dashboard = () => {
     });
   }, [dataProvider]);
 
-  // Prepare data for PieChart (hide donor name for executives)
+  // Calculating statistics for donations
+  let totalDonationMoney = 0;
+  const uniqueDonations = donationData.length;
+  donationData.forEach((donation) => {
+    totalDonationMoney += donation.monto;
+  });
+  const averageDonation = totalDonationMoney / uniqueDonations;
+
   const pieChartData = donationData.reduce((acc, donation) => {
-    const key = viewBy === 'donor' && permissions === 'admin' 
+    const key = viewBy === 'donor' && permissions === 'admin'
       ? donation.donador.nombre // Show donor name for admin
-      : viewBy === 'date' 
+      : viewBy === 'date'
       ? donation.fecha // Show date for both
       : 'Hidden'; // Hide donor name for executives
 
@@ -63,7 +73,6 @@ export const Dashboard = () => {
     return acc;
   }, [] as { name: string; value: number }[]);
 
-  // Prepare data for BarChart (hide donor name for executives)
   const barChartData = donationData.map(donation => ({
     name: viewBy === 'donor' && permissions === 'admin'
       ? donation.donador.nombre // Show donor name for admin
@@ -73,10 +82,12 @@ export const Dashboard = () => {
     monto: donation.monto,
   }));
 
+
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3}
+    >
       {/* Welcome Card */}
-      <Grid item xs={12}>
+      <Grid item xs={10}>
         <Card>
           <CardHeader title="Welcome to the Admin Dashboard" />
           <CardContent>
@@ -155,10 +166,24 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </Grid>
+
+      {/* Donation Statistics */}
+      <Grid item xs={12} md={6}>
+        <Card>
+          <CardHeader
+            title="Donation Stats"
+            style={{ fontWeight: 'bold', fontSize: '1.5rem', paddingBottom: '0' }}
+          />
+          <CardContent>
+            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Number of Donations</h2>
+            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>{uniqueDonations}</h3>
+            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Money</h2>
+            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${totalDonationMoney}</h3>
+            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Average Donation Amount</h2>
+            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${averageDonation}</h3>
+          </CardContent>
+        </Card>
+      </Grid>
     </Grid>
   );
 };
-
-
-
-

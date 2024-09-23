@@ -3,7 +3,7 @@ import json
 import hashlib
 
 ########################################
-#PARA QUE FUNCIONE CORRE EN TERMINAL
+#PARA QUE FUNCIONE, CORRE EN TERMINAL
 #pip3 install pymongo
 #Tambien tienes que tener corriendo el servidor de mongo
 ########################################
@@ -12,13 +12,9 @@ nombreCollection1 = "donaciones"
 nombreCollection2 = "usuarios"
 ########################################
 def hashInput(input_string):
-    # Encode the input string to bytes
     encoded_input = input_string.encode('utf-8') 
-    # Create a SHA-256 hash object
     sha256_hash = hashlib.sha256()
-    # Update the hash object with the encoded input
     sha256_hash.update(encoded_input)
-    # Get the hexadecimal representation of the hash
     hash_hex = sha256_hash.hexdigest()
     return hash_hex
 ########################################
