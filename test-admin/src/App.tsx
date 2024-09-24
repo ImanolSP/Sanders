@@ -13,10 +13,16 @@ import { MyLoginPage } from "./LogIn";
 import { basedatos } from "./providers/dataprovider";
 import { i18nProvider } from "./providers/i18nProvider";
 import { ProSidebarProvider } from 'react-pro-sidebar';
+import { useEffect } from "react";
+import { permission } from "process";
+import { checkTokenExpiration } from "./CheckAuth/authUtils";
 
 export const App = () => {
   const [theme, colorMode] = useMode();
-
+  useEffect(() => {
+    // Check token expiration when the component mounts
+    checkTokenExpiration();
+  }, []);
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ProSidebarProvider>
@@ -29,13 +35,17 @@ export const App = () => {
         dataProvider={basedatos}
         theme={theme}
       >
+        {permission =>(
+      
+      <>
+      {permission==="admin"&&(
         <Resource
           name="usuarios"
           list={UserList}
           edit={UserEdit}
           create={UserCreate}
           icon={UserIcon}
-        />
+        />)}
         <Resource
           name="donaciones"
           list={DonadoresList}
@@ -43,6 +53,8 @@ export const App = () => {
           create={DonadoresCreate}
           icon={PostIcon}
         />
+        </>
+      )}
         {/* Otros recursos si los hay */}
       </Admin>
       </ProSidebarProvider>
