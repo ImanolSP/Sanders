@@ -50,31 +50,6 @@ const SECRET_KEY = "Whatever";
 async function connectToDB() {
   return await CLIENT.connect();
 }
-
-
-//FUNCTION YET TO BE REVISED, NOT WORKING 100%
-const verifyToken = (requiredAccessLevel) => {
-  return (req, res, next) => {
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
-    jwt.verify(token, SECRET_KEY, (err, decoded) => {
-      if (err) {
-        return res.status(403).json({ message: 'Failed to authenticate token' });
-      }
-      if (decoded.nivel_acceso < requiredAccessLevel) {
-        return res.status(403).json({ message: 'Insufficient access level' });
-      }
-      req.user = decoded;
-      next();
-    });
-  };
-};
-
-
-
-
 //----------------------------
 // ENDPOINT
 // Crear una donacion
@@ -545,30 +520,37 @@ app.get("/usuarios/:id", async (request, response) => {
 // ENDPOINT
 // LogIn
 //----------------------------
+//----------------------------
 app.post("/login", async (request, response) => {
   let connection = null;
   try {
     const data = request.body;
+
     if (!CheckLogIn(data)) {
       return response.status(400).json({ message: "Invalid request format." });
     }
+
     connection = await connectToDB();
     const db = connection.db(dbName);
     const collection = db.collection(usuariosCollection);
     const result = await collection.find({ "usuario": data["usuario"] }).toArray();
 
     if (result.length === 1 && result[0]["contraseña"] === data["contraseña"]) {
-      const token = jwt.sign(
-        { username: data.usuario, nivel_acceso: result[0].nivel_acceso }, 
-        SECRET_KEY,
-        { expiresIn: '1h' }
-      );
-      response.cookie('token', token, {
-        //httpOnly: true,
-        secure: true, // Set to true if using HTTPS
-        sameSite: 'Strict'
+      // Create JWT token containing nivel_acceso and username
+      const tokenData = {
+        username: data.usuario,
+        nivel_acceso: result[0].nivel_acceso
+      };
+
+      // Generate JWT token with SECRET_KEY and set it to expire in 1 hour
+      const token = jwt.sign(tokenData, SECRET_KEY, { expiresIn: '1h' });
+
+      // Send response with access and token
+      response.status(200).json({
+        acceso: true, 
+        nivel_acceso: result[0]["nivel_acceso"],
+        token: token // send the token in the response
       });
-      response.status(200).json({ acceso: true, nivel_acceso: result[0]["nivel_acceso"] });
     } else {
       response.status(200).json({ acceso: false, nivel_acceso: 0 });
     }
