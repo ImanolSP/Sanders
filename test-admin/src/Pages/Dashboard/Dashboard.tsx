@@ -3,11 +3,7 @@ import { Card, CardContent, CardHeader, Grid, Button, ButtonGroup } from "@mui/m
 import { useDataProvider, usePermissions, RaRecord } from 'react-admin';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { v4 as uuidv4 } from 'uuid';
-import { tokens } from "../../theme";
 
-
-
-// Define the Donation interface to match your data structure
 interface Donation extends RaRecord {
   id: string;
   monto: number;
@@ -23,11 +19,7 @@ export const Dashboard = () => {
   const dataProvider = useDataProvider();
   const { permissions } = usePermissions();
   const [donationData, setDonationData] = useState<Donation[]>([]);
-  const [viewBy, setViewBy] = useState<'donor' | 'date'>('date'); // State for data view (by donor or date)
-
-  useEffect(() => {
-    console.log("Permissions:", permissions);  // Debug permissions
-  }, [permissions]);
+  const [viewBy, setViewBy] = useState<'donor' | 'date'>('date');
 
   useEffect(() => {
     dataProvider.getList<Donation>('donaciones', {
@@ -35,7 +27,6 @@ export const Dashboard = () => {
       sort: { field: 'fecha', order: 'ASC' }
     })
     .then(response => {
-      // Generate a unique ID for each donation if not already provided
       const dataWithId = response.data.map(donation => ({
         ...donation,
         id: uuidv4(),
@@ -47,20 +38,17 @@ export const Dashboard = () => {
     });
   }, [dataProvider]);
 
-  // Calculating statistics for donations
   let totalDonationMoney = 0;
   const uniqueDonations = donationData.length;
-  donationData.forEach((donation) => {
-    totalDonationMoney += donation.monto;
-  });
+  donationData.forEach(donation => totalDonationMoney += donation.monto);
   const averageDonation = totalDonationMoney / uniqueDonations;
 
   const pieChartData = donationData.reduce((acc, donation) => {
     const key = viewBy === 'donor' && permissions === 'admin'
-      ? donation.donador.nombre // Show donor name for admin
+      ? donation.donador.nombre
       : viewBy === 'date'
-      ? donation.fecha // Show date for both
-      : 'Hidden'; // Hide donor name for executives
+      ? donation.fecha
+      : 'Hidden';
 
     const existingEntry = acc.find(entry => entry.name === key);
 
@@ -73,19 +61,74 @@ export const Dashboard = () => {
     return acc;
   }, [] as { name: string; value: number }[]);
 
-  const barChartData = donationData.map(donation => ({
-    name: viewBy === 'donor' && permissions === 'admin'
-      ? donation.donador.nombre // Show donor name for admin
-      : viewBy === 'date'
-      ? donation.fecha // Show date for both
-      : 'Hidden', // Hide donor name for executives
-    monto: donation.monto,
-  }));
+  const barChartData = Array.from({ length: 12 }, (_, index) => {
+    const month = new Date();
+    month.setMonth(month.getMonth() - index);
+    const monthString = month.toLocaleString('default', { month: 'long' });
+    const year = month.getFullYear();
+    const monthKey = `${monthString} ${year}`;
 
+    const totalForMonth = donationData
+      .filter(donation => {
+        const donationDate = new Date(donation.fecha);
+        return donationDate.getFullYear() === year && donationDate.getMonth() === month.getMonth();
+      })
+      .reduce((sum, donation) => sum + donation.monto, 0);
+
+    return {
+      name: monthKey,
+      monto: totalForMonth,
+    };
+  }).reverse(); // To show from September 2023 to September 2024
+
+  // Process top 10 donors based on total donated and average donation
+  const donorsSummary = donationData.reduce((acc, donation) => {
+    const donorKey = `${donation.donador.nombre} ${donation.donador.apellido} (${donation.donador.email})`;
+    if (!acc[donorKey]) {
+      acc[donorKey] = { totalDonated: 0, donationsCount: 0 };
+    }
+    acc[donorKey].totalDonated += donation.monto;
+    acc[donorKey].donationsCount += 1;
+    return acc;
+  }, {} as { [key: string]: { totalDonated: number; donationsCount: number } });
+
+  const topDonorsByTotal = Object.entries(donorsSummary)
+    .sort((a, b) => b[1].totalDonated - a[1].totalDonated)
+    .slice(0, 10)
+    .map(([donor, { totalDonated }]) => ({ donor, totalDonated }));
+
+  const topDonorsByAverage = Object.entries(donorsSummary)
+    .map(([donor, { totalDonated, donationsCount }]) => ({
+      donor,
+      averageDonated: totalDonated / donationsCount,
+    }))
+    .sort((a, b) => b.averageDonated - a.averageDonated)
+    .slice(0, 10);
+
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
+  // Obtener las donaciones del mes actual por día
+  const lineChartData = Array.from({ length: new Date().getDate() }, (_, index) => {
+    const day = new Date();
+    day.setDate(index + 1);
+    const dayString = day.toLocaleDateString('default', { day: 'numeric', month: 'short' });
+
+    const totalForDay = donationData
+      .filter(donation => {
+        const donationDate = new Date(donation.fecha);
+        return donationDate.getFullYear() === day.getFullYear() && donationDate.getMonth() === day.getMonth() && donationDate.getDate()+1 === day.getDate();
+      })
+      .reduce((sum, donation) => sum + donation.monto, 0);
+
+    return {
+      name: dayString,
+      monto: totalForDay,
+    };
+  });
 
   return (
-    <Grid container spacing={3}
-    >
+    <Grid container spacing={3}>
       {/* Welcome Card */}
       <Grid item xs={10}>
         <Card>
@@ -101,7 +144,7 @@ export const Dashboard = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <ButtonGroup variant="contained" aria-label="outlined secondary button group">
+              <ButtonGroup variant="contained">
                 <Button onClick={() => setViewBy('date')}>View by Date</Button>
                 <Button onClick={() => setViewBy('donor')}>View by Donor</Button>
               </ButtonGroup>
@@ -110,35 +153,16 @@ export const Dashboard = () => {
         </Grid>
       )}
 
-      {/* Line Chart */}
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardHeader title="Donations Over Time" />
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={donationData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={viewBy === 'donor' && permissions === 'admin' ? 'donador.nombre' : 'fecha'} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="monto" stroke="#56B4E9" activeDot={{ r: 8 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </Grid>
-
-      {/* Pie Chart */}
+      {/* Pie Chart and Donation Stats */}
       <Grid item xs={12} md={6}>
         <Card>
           <CardHeader title="Donations Distribution" />
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={357}>
               <PieChart>
-                <Pie dataKey="value" data={pieChartData} cx="50%" cy="50%" outerRadius={80} fill="#82ca9d" label>
+                <Pie dataKey="value" data={pieChartData} cx="50%" cy="50%" outerRadius={120} fill="#82ca9d" label>
                   {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7', '#F0E442', '#56B4E9', '#666666', '#009688', '#A6761D'][index % 7]} />
+                    <Cell key={`cell-${index}`} fill={['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7', '#F0E442', '#56B4E9'][index % 7]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -148,24 +172,42 @@ export const Dashboard = () => {
         </Card>
       </Grid>
 
-      {/* Bar Chart */}
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardHeader title="Donations Comparison" />
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={barChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="monto" fill="#56B4E9" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </Grid>
+      {/* Top 10 Donors by Total and Average Donation - Only in donor view */}
+      {viewBy === 'donor' && (
+        <>
+          {/* Top 10 Donors by Total Donation */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardHeader title="Top 10 Donors by Total Donation" />
+              <CardContent>
+                <ul style={{ listStyleType: 'none', padding: 0 }}>
+                  {topDonorsByTotal.map((donor, index) => (
+                    <li key={index} style={{ fontSize: '16px', marginBottom: '10px' }}>
+                      {donor.donor}: <strong>${donor.totalDonated}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Top 10 Donors by Average Donation */}
+          <Grid item xs={12} md={6}>
+            <Card >
+              <CardHeader title="Top 10 Donors by Average Donation" />
+              <CardContent>
+                <ul style={{ listStyleType: 'none', padding: 0 }}>
+                  {topDonorsByAverage.map((donor, index) => (
+                    <li key={index} style={{ fontSize: '16px', marginBottom: '10px' }}>
+                      {donor.donor}: <strong>${donor.averageDonated.toFixed(2)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </Grid>
+        </>
+      )}
 
       {/* Donation Statistics */}
       <Grid item xs={12} md={6}>
@@ -176,14 +218,70 @@ export const Dashboard = () => {
           />
           <CardContent>
             <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Number of Donations</h2>
-            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>{uniqueDonations}</h3>
-            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Money</h2>
-            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${totalDonationMoney}</h3>
+            <h3 style={{ textAlign: 'center', fontSize: '2rem', color: '#2F3EB1', fontWeight: 'bold' }}>{uniqueDonations}</h3>
+            <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Amount</h2>
+            <h3 style={{ textAlign: 'center', fontSize: '2rem', color: '#2F3EB1', fontWeight: 'bold' }}>${totalDonationMoney}</h3>
             <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Average Donation Amount</h2>
-            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${averageDonation.toFixed(2)}</h3>
+            <h3 style={{ textAlign: 'center', fontSize: '2rem', color: '#2F3EB1', fontWeight: 'bold' }}>${averageDonation.toFixed(2)}</h3>
           </CardContent>
         </Card>
       </Grid>
+
+      {/* Graphs - Only in date view */}
+      {viewBy === 'date' && (
+        <>
+          {/* Line Chart */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardHeader title="Donations of the month" />
+              <CardContent>
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart data={lineChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="monto" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Bar Chart */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardHeader title="Monthly Donations Amount" />
+              <CardContent>
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={barChartData} margin={{ top: 5, right: 20, left: 20, bottom: 20}}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-20} // Rota el texto -30 grados
+                      textAnchor="end" // Alinea el texto al final
+                      interval={0} // Muestra todas las etiquetas
+                      tickFormatter={(value) => {
+                        const [month, year] = value.split(" "); 
+                        const lastTwoDigits = year.slice(-2); 
+                        return `${month} ${lastTwoDigits}`; 
+                      }}
+                    />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar 
+                      dataKey="monto" 
+                      fill="#82ca9d" 
+                      />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        </>
+      )}
     </Grid>
   );
 };
