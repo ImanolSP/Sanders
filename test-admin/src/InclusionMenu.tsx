@@ -4,14 +4,10 @@ import { useStore } from "react-admin";
 
 export const InclusionMenu = () => {
   const [fontSize, setFontSize] = useState<number>(14);
-  const [theme, setTheme] = useStore('theme', 'light');
   const [language, setLanguage] = useStore('locale', 'en'); // Add language state
-
-  const isDarkMode = theme === 'dark';
 
   useEffect(() => {
     const savedFontSize = localStorage.getItem('fontSize');
-    const savedTheme = localStorage.getItem('theme');
     const savedLanguage = localStorage.getItem('language');
 
     if (savedFontSize) {
@@ -19,14 +15,10 @@ export const InclusionMenu = () => {
       document.documentElement.style.fontSize = `${Number(savedFontSize)}px`;
     }
 
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
-  }, [setTheme, setLanguage]);
+  });
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${fontSize}px`;
@@ -36,12 +28,6 @@ export const InclusionMenu = () => {
   const handleFontSizeChange = (event: Event, newValue: number | number[]) => {
     setFontSize(newValue as number);
   };
-
-  const handleThemeToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newTheme = event.target.checked ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-  }, [setTheme]);
 
   const handleLanguageChange = (event: SelectChangeEvent<string>) => {
     const newLanguage = event.target.value;
@@ -62,17 +48,6 @@ export const InclusionMenu = () => {
         valueLabelDisplay="auto"
       />
       
-      <FormControlLabel
-        control={
-          <Switch
-            checked={isDarkMode}
-            onChange={handleThemeToggle}
-            name="themeToggle"
-          />
-        }
-        label="Modo Oscuro"
-      />
-
       <Typography gutterBottom>Idioma</Typography>
       <Select
         value={language}
