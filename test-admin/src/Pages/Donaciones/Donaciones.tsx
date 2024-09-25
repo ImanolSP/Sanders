@@ -124,7 +124,7 @@ export const DonadoresList = (props: ListProps) => {
         >
           <NumberField
             source="monto"
-            options={{ style: "currency", currency: "USD" }}
+            options={{ style: "currency", currency: "MXN" }}
           />
           <DateField source="fecha" />
           <TextField
