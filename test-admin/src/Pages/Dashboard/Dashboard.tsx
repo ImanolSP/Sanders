@@ -122,7 +122,7 @@ export const Dashboard = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="monto" stroke="#8884d8" activeDot={{ r: 8 }} />
+                <Line type="monotone" dataKey="monto" stroke="#56B4E9" activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -138,7 +138,7 @@ export const Dashboard = () => {
               <PieChart>
                 <Pie dataKey="value" data={pieChartData} cx="50%" cy="50%" outerRadius={80} fill="#82ca9d" label>
                   {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={['#8884d8', '#8dd1e1', '#82ca9d', '#ffc658'][index % 4]} />
+                    <Cell key={`cell-${index}`} fill={['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7', '#F0E442', '#56B4E9', '#666666', '#009688', '#A6761D'][index % 7]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -160,7 +160,7 @@ export const Dashboard = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="monto" fill="#8884d8" />
+                <Bar dataKey="monto" fill="#56B4E9" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -180,7 +180,7 @@ export const Dashboard = () => {
             <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Total Donation Money</h2>
             <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${totalDonationMoney}</h3>
             <h2 style={{ textAlign: 'center', fontSize: '1.1rem', margin: '10px 0' }}>Average Donation Amount</h2>
-            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${averageDonation}</h3>
+            <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginTop: '10px' }}>${averageDonation.toFixed(2)}</h3>
           </CardContent>
         </Card>
       </Grid>
