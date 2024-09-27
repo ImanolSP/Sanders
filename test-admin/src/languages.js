@@ -28,6 +28,10 @@ export const spanishMessages = {
             open_menu: "Abrir menú",
             close_menu: "Cerrar menú"
         },
+        sort: {
+            ASC: 'Ascendiente',
+            DESC: 'Descendiente',  // Add this if missing
+        },
         boolean: {
             true: "Sí",
             false: "No",
@@ -91,6 +95,7 @@ export const spanishMessages = {
             page_rows_per_page: "Filas por página"
         },
         auth: {
+            auth_check_error: "Por favor, inicie sesión para continuar",
             user_menu: "Perfil",
             username: "Usuario",
             password: "Contraseña",
@@ -151,6 +156,10 @@ export const englishMessages = {
             move_down: "Move down",
             open_menu: "Open menu",
             close_menu: "Close menu"
+        },
+        sort: {
+            ASC: 'Ascending',
+            DESC: 'Descending',  // Add this if missing
         },
         boolean: {
             true: "Yes",
@@ -215,6 +224,7 @@ export const englishMessages = {
             page_rows_per_page: "Rows per page"
         },
         auth: {
+            auth_check_error: "Please log in to continue",
             user_menu: "Profile",
             username: "Username",
             password: "Password",

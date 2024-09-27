@@ -3,7 +3,7 @@ import CryptoJS from 'crypto-js';
 export const authProvider = {
     login: async ({ username, password }) => {
         const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-      
+      console.log("Entered auth provider login to check inhabilited login")
         try {
           const response = await fetch('https://localhost:3000/login', {
             method: 'POST',
@@ -16,14 +16,23 @@ export const authProvider = {
             }),
             credentials: 'include',
           });
-      
+          
           if (!response.ok) {
             throw new Error('Login failed');
           }
+
       
           const data = await response.json();
+
+          if(!data.acceso){
+              console.log("NO LOGIN POSSIBLE THANKS TO EXCESS")
+
+              alert(data.message);
+            
+          }
       
           if (data.acceso) {
+
             // Store token in localStorage
             localStorage.setItem('username', username);
             localStorage.setItem('nivel_acceso', data.nivel_acceso);
