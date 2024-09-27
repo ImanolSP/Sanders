@@ -155,3 +155,63 @@ function isBool(bool)
 {
     return bool === true || bool === false;
 }
+
+export async function CheckBadEntries(collection, usuario, intentosPermitidos) // Regresa true si hay error, false si todo bien
+{
+    const check = await collection.find({"usuario": usuario}).toArray();
+    return (check.length === 1 && check[0].intentos >= intentosPermitidos)
+}
+
+export async function AddBadEntry(collection, usuario)
+{
+    const curDate =  new Date();
+    const check = await collection.find({"usuario": usuario}).toArray();
+    let result = null;
+      
+
+    if (check.length === 0)
+    {
+        const insertJSON = 
+        {
+            "usuario": usuario,
+            "fecha": curDate,
+            "intentos": 1
+        }
+
+        result = await collection.insertOne(insertJSON);
+    }
+    else
+    {
+    const intentos = check[0].intentos;
+   
+    result = await collection.updateOne({"usuario": usuario}, 
+    { $set: {"intentos": intentos + 1}});
+    }
+
+}
+
+export async function ClearBadEntries(collection, minutes)
+{
+    const entries = await collection.find().sort({"fecha": 1}).toArray()   
+    //console.log("ENTRIES", entries)
+
+   for (let i = 0; i < entries.length; i++)
+   {
+    if (HasNMinPassed(minutes, entries[i].fecha))
+    {
+        //console.log("DELETING", entries[i])
+        const result = await collection.deleteOne({ "usuario": entries[i].usuario });
+    }
+    else break;
+   }
+}   
+
+function HasNMinPassed(m, fecha)
+{
+    const curDate = new Date();
+    const diffMs = curDate - new Date(fecha);  // Calculate the difference in milliseconds
+    const diffMins = diffMs / (1000 * 60);  // Convert milliseconds to minutes
+    
+    return diffMins >= m; 
+
+}

@@ -3,7 +3,7 @@
 // Importing modules
 import express, { request, response } from "express";
 import { MongoClient, ObjectId } from "mongodb";
-import {CheckDonacion, CheckLogIn, CheckUsuario, CheckDonacionEdit, CheckUsuarioEdit} from "./functions.js";
+import {CheckDonacion, CheckLogIn, CheckUsuario, CheckDonacionEdit, CheckUsuarioEdit, CheckBadEntries, AddBadEntry, ClearBadEntries} from "./functions.js";
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import CryptoJS from 'crypto-js';
@@ -45,6 +45,9 @@ const CLIENT = new MongoClient(url);
 const dbName = "TEST101";
 const donacionesCollection = "donaciones";
 const usuariosCollection = "usuarios";
+const entriesCollection = "bad_entries";
+const intentosPermitidos = 3;
+const minutosBloqueado = 15;
 //
 const projectsCollection = "projects";
 //
@@ -297,11 +300,11 @@ app.get("/usuarios", /*verifyToken(1)*/ async (request, response) => {
         console.log("\n");
       }
 });
+
 //----------------------------
 // ENDPOINT
 // Obtener la donación a editar
 //----------------------------
-
 app.get("/donaciones/:id", async (request, response) => {
   let connection = null;
   try {
@@ -489,7 +492,6 @@ app.put("/usuarios", async (request, response) => {
 // ENDPOINT
 // Usado para conseguir un usuario, este para poder ser editado
 //----------------------------
-
 app.get("/usuarios/:id", async (request, response) => {
   let connection = null;
   try {
@@ -700,15 +702,37 @@ app.post("/login", async (request, response) => {
     const data = request.body;
 
     if (!CheckLogIn(data)) {
-      return response.status(400).json({ message: "Invalid request format." });
+      console.log("POST /login: FALSE\nFormato Incorrecto.");
+      return response.status(400).json({ acceso: false, nivel_acceso: 0 });
     }
 
     connection = await connectToDB();
     const db = connection.db(dbName);
-    const collection = db.collection(usuariosCollection);
-    const result = await collection.find({ "usuario": data["usuario"] }).toArray();
+    const u_collection = db.collection(usuariosCollection);
+    const e_collection = db.collection(entriesCollection);
+    const result = await u_collection.find({ "usuario": data["usuario"] }).toArray();
 
-    if (result.length === 1 && result[0]["contraseña"] === data["contraseña"]) {
+    if ( result.length !== 1)
+    {
+      console.log("POST /login: FALSE\nNo existe ese usuario o hay error en BDD.");
+      return response.status(200).json({ acceso: false, nivel_acceso: 0 });
+    }
+  
+    await ClearBadEntries(e_collection, minutosBloqueado);
+
+    if (await CheckBadEntries(e_collection, data.usuario, intentosPermitidos))
+    {
+      console.log("POST /login: FALSE\nBloqueado por intentos fallidos.");
+      return response.status(200).json({ acceso: false, nivel_acceso: 0 });
+    }
+    else if( result[0]["contraseña"] !== data["contraseña"] )
+    {
+      console.log("POST /login: FALSE\nContraseña incorrecta.");
+      await AddBadEntry(e_collection, data.usuario);
+      return response.status(200).json({ acceso: false, nivel_acceso: 0 });
+    }
+    else { // TODO BIEN
+      
       // Create JWT token containing nivel_acceso and username
       const tokenData = {
         username: data.usuario,
@@ -717,22 +741,25 @@ app.post("/login", async (request, response) => {
 
       // Generate JWT token with SECRET_KEY and set it to expire in 1 hour
       const token = jwt.sign(tokenData, SECRET_KEY, { expiresIn: '1h' });
-
+      console.log("POST /login: TRUE\nAccess Granted!");
       // Send response with access and token
       response.status(200).json({
         acceso: true, 
         nivel_acceso: result[0]["nivel_acceso"],
         token: token // send the token in the response
       });
-    } else {
-      response.status(200).json({ acceso: false, nivel_acceso: 0 });
-    }
+    } 
   } catch (error) {
-    response.status(500).json({ error: error.message });
+    console.log("POST /login: FALSE\nCATCH");
+    response.status(500);
+    response.json({ acceso: false});
+    console.log(error);
   } finally {
     if (connection !== null) {
       await connection.close();
+      console.log("CCS!");
     }
+    console.log("\n");
   }
 });
 
@@ -749,6 +776,63 @@ app.post('/logout', (req, res) => {
   });;
   res.status(200).json({ message: 'Logged out successfully' });
 });
+
+
+app.get("/test", async (request, response) => {
+  let connection = null;
+  const intentosPermitidos = 3;
+  const curDate =  new Date();
+  try {
+      let data = request.body;
+      
+
+
+      console.log("DATA: ",data);
+      // Connect to DB
+      connection = await connectToDB();
+      const db = connection.db(dbName);
+      const collection = db.collection(entriesCollection);
+      
+      let result = null;
+
+      await ClearBadEntries(collection, minutosBloqueado);
+      return response.status(200).send("TEST");
+      
+      //Borrar intentos despues de 15 minutos
+      //ClearIPs(collection, );
+
+      console.log("CHECK: ", check);
+      if (check.length === 0)
+      {
+        data.intentos = 1;
+        data.ip = request.ip;
+        data.fecha = curDate;
+        result = await collection.insertOne(data);
+      }
+      else
+      {
+        const intentos = check[0].intentos;
+        console.log("INTENTOS:", intentos )
+        if (intentos >= intentosPermitidos){return response.status(200).send("SUFICIENTES INTENTOS");}
+
+        result = await collection.updateOne({"ip": request.ip}, 
+        { $set: {"intentos": intentos + 1}});
+      }
+
+      response.status(200).send("TEST");
+     
+      
+  } catch (error) {
+      console.log(error);
+      response.status(500).json({ message: "Internal server error" });
+  } finally {
+      if (connection !== null) {
+          await connection.close();
+      }
+  }
+});
+
+
 
 /*app.listen(port, () => {
     console.log(`Server running on port ${port}`);
