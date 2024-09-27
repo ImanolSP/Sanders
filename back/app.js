@@ -723,7 +723,12 @@ app.post("/login", async (request, response) => {
     if (await CheckBadEntries(e_collection, data.usuario, intentosPermitidos))
     {
       console.log("POST /login: FALSE\nBloqueado por intentos fallidos.");
-      return response.status(200).json({ acceso: false, nivel_acceso: 0 });
+
+
+      return response.status(200).json({ acceso: false, 
+        nivel_acceso: 0, 
+        message: `El usuario ha sido bloqueado por demasiados intentos fallidos.` 
+      });
     }
     else if( result[0]["contraseña"] !== data["contraseña"] )
     {
