@@ -45,6 +45,9 @@ const CLIENT = new MongoClient(url);
 const dbName = "TEST101";
 const donacionesCollection = "donaciones";
 const usuariosCollection = "usuarios";
+//
+const projectsCollection = "projects";
+//
 const SECRET_KEY = "Whatever";
 
 async function connectToDB() {
@@ -515,6 +518,176 @@ app.get("/usuarios/:id", async (request, response) => {
       }
   }
 });
+
+
+
+//----------------------------
+// ENDPOINT
+// GET /projects
+//----------------------------
+app.get("/projects", async (request, response) => {
+  let connection = null;
+  try {
+    const { filter, range, sort } = request.query;
+
+    // Parsear los parámetros
+    const parsedFilter = filter ? JSON.parse(filter) : {};
+    const parsedRange = range ? JSON.parse(range) : [0, 9];
+    const parsedSort = sort ? JSON.parse(sort) : ["id", "ASC"];
+
+    const [skip, limit] = parsedRange;
+    const [sortField, sortOrder] = parsedSort;
+
+    connection = await connectToDB();
+    const db = connection.db(dbName);
+    const collection = db.collection(projectsCollection);
+
+    const total = await collection.countDocuments(parsedFilter);
+    const cursor = collection.find(parsedFilter)
+      .sort({ [sortField]: sortOrder === "ASC" ? 1 : -1 })
+      .skip(skip)
+      .limit(limit - skip + 1);
+
+    const result = await cursor.toArray();
+
+    result.forEach(item => {
+      item.id = item._id;
+      delete item._id;
+    });
+
+    response.setHeader('Content-Range', `projects ${skip}-${limit}/${total}`);
+    response.setHeader('X-Total-Count', `${total}`);
+    response.status(200).json(result);
+    console.log("GET /projects: TRUE");
+  } catch (error) {
+    console.log("GET /projects: FALSE\nCATCH");
+    response.status(500).json(error);
+    console.log(error);
+  } finally {
+    if (connection !== null) {
+      await connection.close();
+    }
+  }
+});
+
+//----------------------------
+// ENDPOINT
+// POST /projects
+//----------------------------
+app.post("/projects", async (request, response) => {
+  let connection = null;
+  try {
+    const data = request.body;
+
+    connection = await connectToDB();
+    const db = connection.db(dbName);
+    const collection = db.collection(projectsCollection);
+    const result = await collection.insertOne(data);
+    //
+    if (!data.donacionesRecibidas) {
+      data.donacionesRecibidas = 0;
+    }
+
+    if (result.acknowledged) {
+      const createdProject = await collection.findOne({ _id: result.insertedId });
+      createdProject.id = createdProject._id;
+      delete createdProject._id;
+
+      response.status(200).json(createdProject);
+      console.log("POST /projects: TRUE");
+    } else {
+      response.status(500).json({ status: false });
+      console.log("POST /projects: FALSE");
+    }
+  } catch (error) {
+    response.status(500).json({ status: false });
+    console.log("POST /projects: FALSE\nCATCH");
+    console.log(error);
+  } finally {
+    if (connection !== null) {
+      await connection.close();
+    }
+  }
+});
+
+//----------------------------
+// ENDPOINT
+// PUT /projects
+//----------------------------
+app.put("/projects", async (request, response) => {
+  let connection = null;
+  try {
+    const data = request.body;
+    const projectId = data.id;
+    delete data.id; // Remove id from data to avoid updating it
+
+    connection = await connectToDB();
+    const db = connection.db(dbName);
+    const collection = db.collection(projectsCollection);
+    const result = await collection.updateOne(
+      { _id: new ObjectId(projectId) },
+      { $set: data }
+    );
+
+    if (result.acknowledged && result.matchedCount === 1) {
+      const updatedProject = await collection.findOne({ _id: new ObjectId(projectId) });
+      updatedProject.id = updatedProject._id;
+      delete updatedProject._id;
+
+      response.status(200).json(updatedProject);
+      console.log("PUT /projects: TRUE");
+    } else {
+      response.status(500).json({ status: false });
+      console.log("PUT /projects: FALSE");
+    }
+  } catch (error) {
+    response.status(500).json({ status: false });
+    console.log("PUT /projects: FALSE\nCATCH");
+    console.log(error);
+  } finally {
+    if (connection !== null) {
+      await connection.close();
+    }
+  }
+});
+//----------------------------
+// ENDPOINT
+// DELETE /projects
+//----------------------------
+app.delete("/projects", async (request, response) => {
+  let connection = null;
+  try {
+    const data = request.body;
+    const projectId = data.id;
+
+    connection = await connectToDB();
+    const db = connection.db(dbName);
+    const collection = db.collection(projectsCollection);
+    const deletedProject = await collection.findOne({ _id: new ObjectId(projectId) });
+
+    const result = await collection.deleteOne({ _id: new ObjectId(projectId) });
+
+    if (result.acknowledged && result.deletedCount === 1) {
+      deletedProject.id = deletedProject._id;
+      delete deletedProject._id;
+      response.status(200).json(deletedProject);
+      console.log("DELETE /projects: TRUE");
+    } else {
+      response.status(500).json({ status: false });
+      console.log("DELETE /projects: FALSE");
+    }
+  } catch (error) {
+    response.status(500).json({ status: false });
+    console.log("DELETE /projects: FALSE\nCATCH");
+    console.log(error);
+  } finally {
+    if (connection !== null) {
+      await connection.close();
+    }
+  }
+});
+
+
 
 //----------------------------
 // ENDPOINT

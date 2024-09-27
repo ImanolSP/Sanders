@@ -1,0 +1,30 @@
+[
+    {
+      "nombre": "Construcción de Pozo en Comunidad X",
+      "descripcion": "Proyecto para construir un pozo en la comunidad X.",
+      "estado": "en progreso",
+      "nivelUrgencia": 2,
+      "fechaInicio": "2023-09-01",
+      "fechaFinEstimada": "2024-03-01",
+      "costoTotal": 50000,
+      "porcentajeAsignado": 20,
+      "usuariosAsignados": ["userId1", "userId2"],
+      "proveedores": ["Proveedor A", "Proveedor B"],
+      "ubicacion": "Comunidad X",
+      "donacionesRecibidas": 10000
+    },
+    {
+      "nombre": "Instalación de Sistemas de Captación de Agua",
+      "descripcion": "Proyecto para instalar sistemas de captación de agua en comunidades rurales.",
+      "estado": "finalizado",
+      "nivelUrgencia": 1,
+      "fechaInicio": "2022-05-01",
+      "fechaFinEstimada": "2022-12-01",
+      "costoTotal": 30000,
+      "porcentajeAsignado": 50,
+      "usuariosAsignados": ["userId3", "userId4"],
+      "proveedores": ["Proveedor C"],
+      "ubicacion": "Comunidad Y",
+      "donacionesRecibidas": 30000
+    }
+  ]

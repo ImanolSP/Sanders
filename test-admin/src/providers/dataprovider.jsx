@@ -1,10 +1,12 @@
+// src/providers/dataprovider.jsx
+
 import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 
 const apiUrl = 'https://localhost:3000';
 const httpClient = fetchUtils.fetchJson;
 
-export const basedatos={
+export const basedatos = {
     getList: async (resource, params) => {
         const { page, perPage } = params.pagination;
         const { field, order } = params.sort;
@@ -14,27 +16,32 @@ export const basedatos={
             filter: JSON.stringify(params.filter),
         };
         const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        const { json, headers } = await httpClient(url, { signal: params.signal });
+        const { headers, json } = await httpClient(url, { signal: params.signal });
+
+        if (!headers.has('content-range') && !headers.has('x-total-count')) {
+            throw new Error('La respuesta de la API debe contener el header "Content-Range" o "X-Total-Count".');
+        }
+
+        const total = headers.has('content-range')
+            ? parseInt(headers.get('content-range').split('/').pop(), 10)
+            : parseInt(headers.get('x-total-count'), 10);
+
         return {
-            data: json,
-            total: parseInt(headers.get('content-range').split('/').pop(), 10),
+            data: json.map(record => ({ ...record })),
+            total: total,
         };
     },
 
     getOne: async (resource, params) => {
         const url = `${apiUrl}/${resource}/${params.id}`;
         const { json } = await httpClient(url);
-    
-        // Map the `_id` field to `id` for React Admin
-        const transformedData = { ...json, id: json._id };
-        delete transformedData._id;
-    
-        return { data: transformedData };
+
+        return { data: json };
     },
 
     getMany: async (resource, params) => {
         const query = {
-            filter: JSON.stringify({ ids: params.ids }),
+            filter: JSON.stringify({ id: params.ids }),
         };
         const url = `${apiUrl}/${resource}?${stringify(query)}`;
         const { json } = await httpClient(url, { signal: params.signal });
@@ -53,72 +60,71 @@ export const basedatos={
             }),
         };
         const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        const { json, headers } = await httpClient(url, { signal: params.signal });
+        const { headers, json } = await httpClient(url, { signal: params.signal });
+
+        if (!headers.has('content-range') && !headers.has('x-total-count')) {
+            throw new Error('La respuesta de la API debe contener el header "Content-Range" o "X-Total-Count".');
+        }
+
+        const total = headers.has('content-range')
+            ? parseInt(headers.get('content-range').split('/').pop(), 10)
+            : parseInt(headers.get('x-total-count'), 10);
+
         return {
             data: json,
-            total: parseInt(headers.get('content-range').split('/').pop(), 10),
+            total: total,
         };
     },
 
     create: async (resource, params) => {
-        const { json } = await httpClient(`${apiUrl}/${resource}`, {
+        const url = `${apiUrl}/${resource}`;
+        const { json } = await httpClient(url, {
             method: 'POST',
             body: JSON.stringify(params.data),
-        })
-        console.log("PRINTING JSONCREATE")
-        console.log(JSON.stringify(json));
+        });
 
-        console.log(JSON.stringify(json, undefined, 4));
-        if (!json || !json.id) {
-            throw new Error('The API response does not contain _id.');
-        }
-        return { data: { ...params.data, id: json.id }, };
+        return { data: { ...json } };
     },
 
     update: async (resource, params) => {
-        const url = `${apiUrl}/${resource}`; // No ID in the URL
+        const url = `${apiUrl}/${resource}`;
         const { json } = await httpClient(url, {
             method: 'PUT',
             body: JSON.stringify({
-                id: params.id,       // Include the ID in the body
-                ...params.data       // Merge the rest of the data
+                id: params.id,
+                ...params.data,
             }),
         });
-        const transformedData = { ...json, id: json._id };
-        delete transformedData._id;
-    
-        return { data: transformedData };
+
+        return { data: json };
     },
 
     updateMany: async (resource, params) => {
-        const query = {
-            filter: JSON.stringify({ id: params.ids}),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
+        const url = `${apiUrl}/${resource}`;
         const { json } = await httpClient(url, {
             method: 'PUT',
-            body: JSON.stringify(params.data),
-        })
+            body: JSON.stringify({
+                ids: params.ids,
+                ...params.data,
+            }),
+        });
         return { data: json };
     },
 
     delete: async (resource, params) => {
-        const url = `${apiUrl}/${resource}`; // No ID in the URL
+        const url = `${apiUrl}/${resource}`;
         const { json } = await httpClient(url, {
             method: 'DELETE',
-            body: JSON.stringify({ id: params.id }) // Send ID in the body
+            body: JSON.stringify({ id: params.id }),
         });
         return { data: json };
     },
 
     deleteMany: async (resource, params) => {
-        const query = {
-            filter: JSON.stringify({ id: params.ids}),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
+        const url = `${apiUrl}/${resource}`;
         const { json } = await httpClient(url, {
             method: 'DELETE',
-            body: JSON.stringify(params.data),
+            body: JSON.stringify({ ids: params.ids }),
         });
         return { data: json };
     },

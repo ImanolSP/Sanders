@@ -10,6 +10,7 @@ import hashlib
 nombreDB = "TEST101"
 nombreCollection1 = "donaciones"
 nombreCollection2 = "usuarios"
+nombreCollection3 = "projects"
 ########################################
 def hashInput(input_string):
     encoded_input = input_string.encode('utf-8') 
@@ -27,6 +28,9 @@ collection1 = db[nombreCollection1]
 db.drop_collection(nombreCollection2)
 collection2 = db[nombreCollection2]
 
+db.drop_collection(nombreCollection3)
+collection3 = db[nombreCollection3]
+
 
 with open('./donaciones.json') as f:
     data = json.load(f)
@@ -40,6 +44,13 @@ with open('./usuarios.json') as f:
         else:
             print(f"Advertencia: La clave 'contraseña' no se encuentra en el registro: {i}")
     collection2.insert_many(data)
+
+
+with open('./projects.json') as f:
+    data = json.load(f)
+    collection3.insert_many(data)
+
+print("Projects data inserted successfully.")
 
 
 print("Data inserted successfully.")

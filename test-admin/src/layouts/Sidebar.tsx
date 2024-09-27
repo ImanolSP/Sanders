@@ -11,6 +11,7 @@ import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import sandersLogo from "../image/sanders.png";
+import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 
 const SidebarComponent: React.FC = () => {
   const theme = useTheme();
@@ -147,6 +148,17 @@ const SidebarComponent: React.FC = () => {
             >
               Donaciones
             </MenuItem>
+
+            <MenuItem
+              component={<RouterLink to="/projects" />}
+              icon={<WorkOutlineIcon />}
+              active={location.pathname === "/projects"}
+            >
+              Proyectos
+            </MenuItem>
+
+            
+
           </Box>
         </Menu>
       </Sidebar>
