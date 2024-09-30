@@ -4,7 +4,20 @@ import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 
 const apiUrl = 'https://localhost:3000';
-const httpClient = fetchUtils.fetchJson;
+//const httpClient = fetchUtils.fetchJson;
+
+// Modifica el httpClient para incluir el token
+const httpClient = (url, options = {}) => {
+    const token = localStorage.getItem('token');
+    if (!options.headers) {
+        options.headers = new Headers({ Accept: 'application/json' });
+    }
+    if (token) {
+        options.headers.set('Authorization', `Bearer ${token}`);
+    }
+    return fetchUtils.fetchJson(url, options);
+};
+
 
 export const basedatos = {
     getList: async (resource, params) => {
@@ -35,8 +48,12 @@ export const basedatos = {
     getOne: async (resource, params) => {
         const url = `${apiUrl}/${resource}/${params.id}`;
         const { json } = await httpClient(url);
-
-        return { data: json };
+    
+        // Map the `_id` field to `id` for React Admin
+        const transformedData = { ...json, id: json._id };
+        delete transformedData._id;
+    
+        return { data: transformedData };
     },
 
     getMany: async (resource, params) => {

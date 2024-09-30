@@ -37,6 +37,7 @@ export const authProvider = {
             localStorage.setItem('username', username);
             localStorage.setItem('nivel_acceso', data.nivel_acceso);
             localStorage.setItem('token', data.token); // Store the token
+            console.log('Token almacenado:', data.token);
           }
         } catch (error) {
           console.error('Login error:', error);

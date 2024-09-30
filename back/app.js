@@ -62,58 +62,77 @@ async function connectToDB() {
 //----------------------------
 app.post("/donaciones", async (request, response) => {
   let connection = null;
-  try 
-    {
-      //Validar que el JSON recibido este correcto
-      const data = request.body;
-      //console.log(data);
-      
-      if(!CheckDonacion(data))
-      {     
-        console.log("POST /donaciones: FALSE\nFormato Incorrecto en JSON");
-        return response.status(200).json({ status: false, id: "" });
-      }
-      
-      //console.log("DATOS enviado correctos")
-      
-      //Crear conexion a base de datos
-      connection = await connectToDB();
-      const db = connection.db(dbName);
-      const collection = db.collection(donacionesCollection);
-      const result = await collection.insertOne(data);
+  try {
+    // Validar que el JSON recibido esté correcto
+    const data = request.body;
 
-      // Obtener el correo electrónico del donador 
-      const emailDonador = data.donador.email; 
-      const nombreDonador = data.donador.nombre; 
-      
-      // Enviar correo de agradecimiento 
-      enviarCorreo(emailDonador, nombreDonador)
-
-      if (result.acknowledged)
-      {
-        console.log("POST /donaciones: TRUE");
-        return response.status(200).json({ status: true, id: result.insertedId });
-      }
-      else {
-        console.log("POST /donaciones: FALSE\nAcknowledged: FALSE");
-        return response.status(500).json({ status: false, id: "" });
-      }
+    if (!CheckDonacion(data)) {
+      console.log("POST /donaciones: FALSE\nFormato Incorrecto en JSON");
+      return response.status(400).json({ status: false, id: "" });
     }
-    catch (error) {
-        console.log("POST /donaciones: FALSE\nCATCH");
-        response.status(500);
-        response.json({ status: false, id: "" });
-        console.log(error);
-      }
-      finally {
-        if (connection !== null) {
-          await connection.close();
-          console.log("CCS!");
-        }
-        console.log("\n");
-      }
-});
 
+    // Crear conexión a base de datos
+    connection = await connectToDB();
+    const db = connection.db(dbName);
+    const collection = db.collection(donacionesCollection);
+    const result = await collection.insertOne(data);
+
+    // Obtener el correo electrónico y nombre del donador
+    const emailDonador = data.donador.email;
+    const nombreDonador = data.donador.nombre;
+
+    // Enviar correo de agradecimiento
+    enviarCorreo(emailDonador, nombreDonador);
+
+    if (result.acknowledged) {
+      console.log("POST /donaciones: TRUE");
+
+      // **Lógica para distribuir la donación**
+
+      // Obtener la colección de proyectos
+      const projectsCollectionName = "projects"; // Asegúrate de que este es el nombre correcto
+      const projectsCollection = db.collection(projectsCollectionName);
+      const projects = await projectsCollection.find().toArray();
+
+      // Calcular el total de porcentaje asignado
+      const totalPorcentaje = projects.reduce((sum, project) => sum + (project.porcentajeAsignado || 0), 0);
+
+      // Verificar que totalPorcentaje no sea cero para evitar división por cero
+      if (totalPorcentaje === 0) {
+        console.log("POST /donaciones: FALSE\nEl total de porcentajes asignados es cero.");
+        return response.status(500).json({ status: false, id: result.insertedId });
+      }
+
+      // Distribuir la donación
+      for (const project of projects) {
+        const porcentaje = (project.porcentajeAsignado || 0) / totalPorcentaje;
+        const montoAsignado = data.monto * porcentaje;
+
+        // Actualizar el proyecto
+        await projectsCollection.updateOne(
+          { _id: project._id },
+          { $inc: { donacionesRecibidas: montoAsignado } }
+        );
+      }
+
+      // Responder al frontend
+      return response.status(200).json({ status: true, id: result.insertedId });
+    } else {
+      console.log("POST /donaciones: FALSE\nAcknowledged: FALSE");
+      return response.status(500).json({ status: false, id: "" });
+    }
+  } catch (error) {
+    console.log("POST /donaciones: FALSE\nCATCH");
+    console.log(error); // Imprime el error para diagnosticar
+    response.status(500).json({ status: false, id: "" });
+  } finally {
+    if (connection !== null) {
+      await connection.close();
+      console.log("CCS!");
+    }
+    console.log("\n");
+  }
+});
 //----------------------------
 // ENDPOINT
 // Obtener todas las donaciones
@@ -581,14 +600,15 @@ app.post("/projects", async (request, response) => {
   try {
     const data = request.body;
 
+    // Asegurarse de que 'donacionesRecibidas' está inicializado
+    if (data.donacionesRecibidas === undefined || data.donacionesRecibidas === null) {
+      data.donacionesRecibidas = 0;
+    }
+
     connection = await connectToDB();
     const db = connection.db(dbName);
     const collection = db.collection(projectsCollection);
     const result = await collection.insertOne(data);
-    //
-    if (!data.donacionesRecibidas) {
-      data.donacionesRecibidas = 0;
-    }
 
     if (result.acknowledged) {
       const createdProject = await collection.findOne({ _id: result.insertedId });

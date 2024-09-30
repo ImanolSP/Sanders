@@ -35,14 +35,14 @@ export const ProjectShow = (props: any) => {
   const handleChangeEstado = async () => {
     const newEstado = record.estado === 'en progreso' ? 'finalizado' : 'en progreso';
     try {
-      await dataProvider.update('projectos', {
+      await dataProvider.update('projects', {
         id: record.id,
         data: { ...record, estado: newEstado },
         previousData: record,
       });
       notify('Estado actualizado correctamente', { type: 'success' });
       refresh();
-      redirect('/proyectos');
+      redirect('/projects');
     } catch (error) {
       notify('Error al actualizar el estado', { type: 'error' });
     }
