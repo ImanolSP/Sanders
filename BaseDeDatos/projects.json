@@ -6,7 +6,7 @@
       "nivelUrgencia": 2,
       "fechaInicio": "2023-09-01",
       "fechaFinEstimada": "2024-03-01",
-      "costoTotal": 50000,
+      "costoTotal": 20000,
       "porcentajeAsignado": 20,
       "usuariosAsignados": ["userId1", "userId2"],
       "proveedores": ["Proveedor A", "Proveedor B"],

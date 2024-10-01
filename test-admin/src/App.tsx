@@ -18,7 +18,7 @@ import { basedatos } from "./providers/dataprovider";
 import { i18nProvider } from "./providers/i18nProvider";
 import { ProSidebarProvider } from "react-pro-sidebar";
 import { useEffect } from "react";
-import { permission } from "process";
+//import { permission } from "process";
 import { checkTokenExpiration } from "./CheckAuth/authUtils";
 
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline"; // Icono para proyectos
@@ -45,9 +45,9 @@ export const App = () => {
           dataProvider={basedatos}
           theme={theme}
         >
-          {(permission) => (
+          {(permissions) => (
             <>
-              {permission === "admin" && (
+              {permissions === "admin" && (
                 <Resource
                   name="usuarios"
                   list={UserList}

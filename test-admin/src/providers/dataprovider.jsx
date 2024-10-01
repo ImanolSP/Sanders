@@ -4,9 +4,7 @@ import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 
 const apiUrl = 'https://localhost:3000';
-//const httpClient = fetchUtils.fetchJson;
 
-// Modifica el httpClient para incluir el token
 const httpClient = (url, options = {}) => {
     const token = localStorage.getItem('token');
     if (!options.headers) {
@@ -17,7 +15,6 @@ const httpClient = (url, options = {}) => {
     }
     return fetchUtils.fetchJson(url, options);
 };
-
 
 export const basedatos = {
     getList: async (resource, params) => {
@@ -39,8 +36,14 @@ export const basedatos = {
             ? parseInt(headers.get('content-range').split('/').pop(), 10)
             : parseInt(headers.get('x-total-count'), 10);
 
+        // Mapear `_id` a `id` en cada registro
+        const data = json.map(record => {
+            const { _id, ...rest } = record;
+            return { id: _id, ...rest };
+        });
+
         return {
-            data: json.map(record => ({ ...record })),
+            data: data,
             total: total,
         };
     },
@@ -48,11 +51,11 @@ export const basedatos = {
     getOne: async (resource, params) => {
         const url = `${apiUrl}/${resource}/${params.id}`;
         const { json } = await httpClient(url);
-    
-        // Map the `_id` field to `id` for React Admin
-        const transformedData = { ...json, id: json._id };
-        delete transformedData._id;
-    
+
+        // Mapear `_id` a `id`
+        const { _id, ...rest } = json;
+        const transformedData = { id: _id, ...rest };
+
         return { data: transformedData };
     },
 
@@ -62,7 +65,14 @@ export const basedatos = {
         };
         const url = `${apiUrl}/${resource}?${stringify(query)}`;
         const { json } = await httpClient(url, { signal: params.signal });
-        return { data: json };
+
+        // Mapear `_id` a `id` en cada registro
+        const data = json.map(record => {
+            const { _id, ...rest } = record;
+            return { id: _id, ...rest };
+        });
+
+        return { data: data };
     },
 
     getManyReference: async (resource, params) => {
@@ -87,8 +97,14 @@ export const basedatos = {
             ? parseInt(headers.get('content-range').split('/').pop(), 10)
             : parseInt(headers.get('x-total-count'), 10);
 
+        // Mapear `_id` a `id` en cada registro
+        const data = json.map(record => {
+            const { _id, ...rest } = record;
+            return { id: _id, ...rest };
+        });
+
         return {
-            data: json,
+            data: data,
             total: total,
         };
     },
@@ -100,20 +116,25 @@ export const basedatos = {
             body: JSON.stringify(params.data),
         });
 
-        return { data: { ...json } };
+        // Mapear `_id` a `id`
+        const { _id, ...rest } = json;
+        const transformedData = { id: _id, ...rest };
+
+        return { data: transformedData };
     },
 
     update: async (resource, params) => {
-        const url = `${apiUrl}/${resource}`;
+        const url = `${apiUrl}/${resource}/${params.id}`; // Incluye el ID en la URL
         const { json } = await httpClient(url, {
             method: 'PUT',
-            body: JSON.stringify({
-                id: params.id,
-                ...params.data,
-            }),
+            body: JSON.stringify(params.data),
         });
 
-        return { data: json };
+        // Mapear `_id` a `id`
+        const { _id, ...rest } = json;
+        const transformedData = { id: _id, ...rest };
+
+        return { data: transformedData };
     },
 
     updateMany: async (resource, params) => {
@@ -125,24 +146,44 @@ export const basedatos = {
                 ...params.data,
             }),
         });
-        return { data: json };
+
+        // Mapear `_id` a `id` en cada registro
+        const data = json.map(record => {
+            const { _id, ...rest } = record;
+            return { id: _id, ...rest };
+        });
+
+        return { data: data };
     },
 
     delete: async (resource, params) => {
-        const url = `${apiUrl}/${resource}`;
+        const url = `${apiUrl}/${resource}/${params.id}`; // Incluye el ID en la URL
         const { json } = await httpClient(url, {
             method: 'DELETE',
-            body: JSON.stringify({ id: params.id }),
         });
-        return { data: json };
+
+        // Mapear `_id` a `id`
+        const { _id, ...rest } = json;
+        const transformedData = { id: _id, ...rest };
+
+        return { data: transformedData };
     },
 
     deleteMany: async (resource, params) => {
-        const url = `${apiUrl}/${resource}`;
+        const query = {
+            filter: JSON.stringify({ id: params.ids }),
+        };
+        const url = `${apiUrl}/${resource}?${stringify(query)}`;
         const { json } = await httpClient(url, {
             method: 'DELETE',
-            body: JSON.stringify({ ids: params.ids }),
         });
-        return { data: json };
+
+        // Mapear `_id` a `id` en cada registro
+        const data = json.map(record => {
+            const { _id, ...rest } = record;
+            return { id: _id, ...rest };
+        });
+
+        return { data: data };
     },
 };

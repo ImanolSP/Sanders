@@ -551,7 +551,7 @@ app.get("/projects", async (request, response) => {
   try {
     const { filter, range, sort } = request.query;
 
-    // Parsear los parámetros
+    // Parse parameters
     const parsedFilter = filter ? JSON.parse(filter) : {};
     const parsedRange = range ? JSON.parse(range) : [0, 9];
     const parsedSort = sort ? JSON.parse(sort) : ["id", "ASC"];
@@ -559,13 +559,28 @@ app.get("/projects", async (request, response) => {
     const [skip, limit] = parsedRange;
     const [sortField, sortOrder] = parsedSort;
 
+    // Map 'id' to '_id' in sort
+    const dbSortField = sortField === 'id' ? '_id' : sortField;
+
+    // Map 'id' and 'ids' to '_id' in filter
+    const dbFilter = {};
+    for (const key in parsedFilter) {
+      if (key === 'id') {
+        dbFilter['_id'] = new ObjectId(parsedFilter[key]);
+      } else if (key === 'ids') {
+        dbFilter['_id'] = { $in: parsedFilter[key].map(id => new ObjectId(id)) };
+      } else {
+        dbFilter[key] = parsedFilter[key];
+      }
+    }
+
     connection = await connectToDB();
     const db = connection.db(dbName);
     const collection = db.collection(projectsCollection);
 
-    const total = await collection.countDocuments(parsedFilter);
-    const cursor = collection.find(parsedFilter)
-      .sort({ [sortField]: sortOrder === "ASC" ? 1 : -1 })
+    const total = await collection.countDocuments(dbFilter);
+    const cursor = collection.find(dbFilter)
+      .sort({ [dbSortField]: sortOrder === "ASC" ? 1 : -1 })
       .skip(skip)
       .limit(limit - skip + 1);
 
@@ -582,7 +597,7 @@ app.get("/projects", async (request, response) => {
     console.log("GET /projects: TRUE");
   } catch (error) {
     console.log("GET /projects: FALSE\nCATCH");
-    response.status(500).json(error);
+    response.status(500).json({ error: error.message });
     console.log(error);
   } finally {
     if (connection !== null) {
@@ -636,16 +651,20 @@ app.post("/projects", async (request, response) => {
 // ENDPOINT
 // PUT /projects
 //----------------------------
-app.put("/projects", async (request, response) => {
+//----------------------------
+// ENDPOINT
+// PUT /projects/:id
+//----------------------------
+app.put("/projects/:id", async (request, response) => {
   let connection = null;
   try {
+    const projectId = request.params.id;
     const data = request.body;
-    const projectId = data.id;
-    delete data.id; // Remove id from data to avoid updating it
 
     connection = await connectToDB();
     const db = connection.db(dbName);
     const collection = db.collection(projectsCollection);
+
     const result = await collection.updateOne(
       { _id: new ObjectId(projectId) },
       { $set: data }
@@ -657,14 +676,14 @@ app.put("/projects", async (request, response) => {
       delete updatedProject._id;
 
       response.status(200).json(updatedProject);
-      console.log("PUT /projects: TRUE");
+      console.log("PUT /projects/:id: TRUE");
     } else {
       response.status(500).json({ status: false });
-      console.log("PUT /projects: FALSE");
+      console.log("PUT /projects/:id: FALSE");
     }
   } catch (error) {
     response.status(500).json({ status: false });
-    console.log("PUT /projects: FALSE\nCATCH");
+    console.log("PUT /projects/:id: FALSE\nCATCH");
     console.log(error);
   } finally {
     if (connection !== null) {
@@ -676,11 +695,10 @@ app.put("/projects", async (request, response) => {
 // ENDPOINT
 // DELETE /projects
 //----------------------------
-app.delete("/projects", async (request, response) => {
+app.delete("/projects/:id", async (request, response) => {
   let connection = null;
   try {
-    const data = request.body;
-    const projectId = data.id;
+    const projectId = request.params.id;
 
     connection = await connectToDB();
     const db = connection.db(dbName);
@@ -693,14 +711,14 @@ app.delete("/projects", async (request, response) => {
       deletedProject.id = deletedProject._id;
       delete deletedProject._id;
       response.status(200).json(deletedProject);
-      console.log("DELETE /projects: TRUE");
+      console.log("DELETE /projects/:id: TRUE");
     } else {
-      response.status(500).json({ status: false });
-      console.log("DELETE /projects: FALSE");
+      response.status(404).json({ status: false, message: "Project not found" });
+      console.log("DELETE /projects/:id: FALSE");
     }
   } catch (error) {
-    response.status(500).json({ status: false });
-    console.log("DELETE /projects: FALSE\nCATCH");
+    response.status(500).json({ status: false, error: error.message });
+    console.log("DELETE /projects/:id: FALSE\nCATCH");
     console.log(error);
   } finally {
     if (connection !== null) {
@@ -709,6 +727,40 @@ app.delete("/projects", async (request, response) => {
   }
 });
 
+//----------------------------
+// ENDPOINT
+// GET /projects/:id
+//----------------------------
+app.get("/projects/:id", async (request, response) => {
+  let connection = null;
+  try {
+    const projectId = request.params.id;
+
+    connection = await connectToDB();
+    const db = connection.db(dbName);
+    const collection = db.collection(projectsCollection);
+
+    const project = await collection.findOne({ _id: new ObjectId(projectId) });
+
+    if (project) {
+      project.id = project._id;
+      delete project._id;
+      response.status(200).json(project);
+      console.log("GET /projects/:id: TRUE");
+    } else {
+      response.status(404).json({ message: "Proyecto no encontrado" });
+      console.log("GET /projects/:id: FALSE - No encontrado");
+    }
+  } catch (error) {
+    console.log("GET /projects/:id: FALSE\nCATCH");
+    response.status(500).json({ error: error.toString() });
+    console.log(error);
+  } finally {
+    if (connection !== null) {
+      await connection.close();
+    }
+  }
+});
 
 
 //----------------------------
