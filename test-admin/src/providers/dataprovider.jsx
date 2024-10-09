@@ -124,15 +124,29 @@ export const basedatos = {
     },
 
     update: async (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`; // Incluye el ID en la URL
-        const { json } = await httpClient(url, {
+        let url;
+        let options = {
             method: 'PUT',
             body: JSON.stringify(params.data),
-        });
+        };
+
+        if (resource === 'usuarios' || resource === 'donaciones') {
+            // Send request to /usuarios or /donaciones without ID in URL, ID in body
+            url = `${apiUrl}/${resource}`;
+
+            // Include ID in params.data
+            const dataWithId = { ...params.data, id: params.id };
+            options.body = JSON.stringify(dataWithId);
+        } else {
+            // For other resources, include ID in URL
+            url = `${apiUrl}/${resource}/${params.id}`;
+        }
+
+        const { json } = await httpClient(url, options);
 
         // Mapear `_id` a `id`
         const { _id, ...rest } = json;
-        const transformedData = { id: _id, ...rest };
+        const transformedData = { id: _id || params.id, ...rest };
 
         return { data: transformedData };
     },
@@ -157,14 +171,26 @@ export const basedatos = {
     },
 
     delete: async (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`; // Incluye el ID en la URL
-        const { json } = await httpClient(url, {
+        let url;
+        let options = {
             method: 'DELETE',
-        });
+        };
+
+        if (resource === 'usuarios' || resource === 'donaciones') {
+            // Send request to /usuarios or /donaciones without ID in URL, ID in body
+            url = `${apiUrl}/${resource}`;
+            // Include ID in body
+            options.body = JSON.stringify({ id: params.id });
+        } else {
+            // For other resources, include ID in URL
+            url = `${apiUrl}/${resource}/${params.id}`;
+        }
+
+        const { json } = await httpClient(url, options);
 
         // Mapear `_id` a `id`
-        const { _id, ...rest } = json;
-        const transformedData = { id: _id, ...rest };
+        const { _id, ...rest } = json || {};
+        const transformedData = { id: _id || params.id, ...rest };
 
         return { data: transformedData };
     },

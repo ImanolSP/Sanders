@@ -6,9 +6,27 @@ const reqDonacionFields = [{"field": "monto", "checkFunction": isPositiveNumber}
                             {"field": "donador", "checkFunction": isJSON}]
 
 
+const reqProyectFields = [
+                            {"field": "nombre", "checkFunction": isString},
+                            {"field": "descripcion", "checkFunction": isString}, 
+                            {"field": "estado", "checkFunction": isString},
+                            {"field": "nivelUrgencia", "checkFunction": isPositiveNumber},
+                            {"field": "fechaInicio", "checkFunction": isString},
+                            {"field": "fechaFinEstimada", "checkFunction": isString},
+                            {"field": "costoTotal", "checkFunction": isPositiveNumber},
+                            {"field": "porcentajeAsignado", "checkFunction": isPositiveNumber},
+                            {"field": "usuariosAsignados", "checkFunction": isArrayOfStrings}, // Verifica que sea un array de strings
+                            {"field": "proveedores", "checkFunction": isArrayOfStrings}, // Verifica que sea un array de strings
+                            {"field": "ubicacion", "checkFunction": isString},
+                            {"field": "donacionesRecibidas", "checkFunction": isPositiveNumber}
+                            ]
+
+                            
+
 const reqDonadorFields = [{"field": "nombre", "checkFunction": isString},
                             {"field": "apellido", "checkFunction": isString}, 
                             {"field": "email", "checkFunction": isString}]
+
 
 
 const reqLogInFields = [{"field": "usuario", "checkFunction": isString}, 
@@ -51,6 +69,20 @@ export function CheckUsuario(json)
 {
     return CheckJson(reqUsuarioFields, json);
 }
+//----------------
+// proyect
+export function CheckProyect(json)
+{
+    return CheckJson(reqProyectFields, json);
+}
+
+// Funciones de Check Type
+
+
+function isArrayOfStrings(value) {
+    return Array.isArray(value) && value.every(isString);
+}
+//----------------
 
 //Funciones de checkeo del formato de JSON que necesita id y uno o mas de los fields (PUT)
 function CheckJsonEdit(fields, json)
@@ -116,6 +148,7 @@ export function CheckUsuarioEdit(json)
 {
     return CheckJsonEdit(reqUsuarioFields, json);
 }
+
 
 
 // Funciones de Check Type
@@ -215,3 +248,46 @@ function HasNMinPassed(m, fecha)
     return diffMins >= m; 
 
 }
+
+
+
+
+
+//proyect:
+// JSON de prueba para validar un proyecto
+const testProject = {
+    "nombre": "Construcción de Pozo en Comunidad X",
+    "descripcion": "Proyecto para construir un pozo en la comunidad X.",
+    "estado": "en progreso",
+    "nivelUrgencia": 2,
+    "fechaInicio": "2023-09-01",
+    "fechaFinEstimada": "2024-03-01",
+    "costoTotal": 20000,
+    "porcentajeAsignado": 20,
+    "usuariosAsignados": ["userId1", "userId2"],
+    "proveedores": ["Proveedor A", "Proveedor B"],
+    "ubicacion": "Comunidad X",
+    "donacionesRecibidas": 10000
+  };
+  
+  // Llamar a la función de validación para proyectos
+  const isProjectValid = CheckProyect(testProject);
+  console.log("¿Es válido el proyecto?", isProjectValid);
+  
+  // Puedes probar con un proyecto inválido
+  const invalidProject = {
+    "descripcion": "Proyecto para construir un pozo en la comunidad X.",
+    "estado": "en progreso",
+    "nivelUrgencia": 2,
+    "fechaInicio": "2023-09-01",
+    "fechaFinEstimada": "2024-03-01",
+    "costoTotal": 20000,
+    "porcentajeAsignado": 20,
+    "usuariosAsignados": ["userId1", "userId2"],
+    "proveedores": ["Proveedor A", "Proveedor B"],
+    "ubicacion": "Comunidad X",
+    "donacionesRecibidas": 10000
+  };
+  
+  const isInvalidProjectValid = CheckProyect(invalidProject);
+  console.log("¿Es válido el proyecto sin nombre?", isInvalidProjectValid);

@@ -89,7 +89,7 @@ const ProjectShowContent = () => {
       <Typography variant="h6" sx={{ color: colors.grey[100] }}>
         Distribución de Financiamiento
       </Typography>
-      <DonutChart
+      <DonutChart 
         data={[
           {
             label: 'Cubierto',
@@ -101,6 +101,7 @@ const ProjectShowContent = () => {
           },
         ]}
         colors={isFullyFunded ? ['#ff0000', '#d0ed57'] : ['#82ca9d', '#d0ed57']}
+        
       />
       {/* Botón para cambiar estado */}
       <Button

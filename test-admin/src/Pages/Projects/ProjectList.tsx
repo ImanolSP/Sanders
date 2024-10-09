@@ -1,6 +1,6 @@
 // src/Pages/Projects/ProjectList.tsx
 
-import React from 'react';
+import React from "react";
 import {
   useListController,
   ListContextProvider,
@@ -12,7 +12,7 @@ import {
   CreateButton,
   TextInput,
   SelectInput,
-} from 'react-admin';
+} from "react-admin";
 import {
   Card,
   CardContent,
@@ -21,13 +21,13 @@ import {
   Grid,
   Button,
   useTheme,
-} from '@mui/material';
-import { Link } from 'react-router-dom';
-import { PieChart, Pie, Cell } from 'recharts';
-import { Project } from '../../interfaces/Project';
-import { tokens } from '../../theme';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import MuiButton from '@mui/material/Button';
+} from "@mui/material";
+import { Link } from "react-router-dom";
+import { PieChart, Pie, Cell } from "recharts";
+import { Project } from "../../interfaces/Project";
+import { tokens } from "../../theme";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import MuiButton from "@mui/material/Button";
 
 // Definir tus filtros
 export const ProjectFilter = [
@@ -35,9 +35,9 @@ export const ProjectFilter = [
     label="Estado"
     source="estado"
     choices={[
-      { id: 'en progreso', name: 'En Progreso' },
-      { id: 'finalizado', name: 'Finalizado' },
-      { id: 'fondos suficientes', name: 'Fondos Suficientes' },
+      { id: "en progreso", name: "En Progreso" },
+      { id: "finalizado", name: "Finalizado" },
+      { id: "fondos suficientes", name: "Fondos Suficientes" },
     ]}
     alwaysOn
   />,
@@ -50,21 +50,21 @@ const StyledFilterButton = (props: any) => {
   const colors = tokens(theme.palette.mode);
 
   return (
-    <MuiButton
+    <Button
       variant="contained"
       startIcon={<FilterListIcon />}
       onClick={props.onClick}
       sx={{
         color: colors.grey[100],
         backgroundColor: colors.blueAccent[700],
-        '&:hover': {
+        "&:hover": {
           backgroundColor: colors.blueAccent[500],
         },
-        margin: '5px',
+        margin: "5px",
       }}
     >
       Filtrar
-    </MuiButton>
+    </Button>
   );
 };
 
@@ -72,22 +72,18 @@ const StyledFilterButton = (props: any) => {
 const ListActions = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const { showFilter } = useListContext();
 
   const buttonStyles = {
     color: colors.grey[100],
     backgroundColor: colors.blueAccent[700],
-    '&:hover': {
+    "&:hover": {
       backgroundColor: colors.blueAccent[500],
     },
-    margin: '5px',
+    margin: "5px",
   };
 
   return (
     <TopToolbar>
-      <StyledFilterButton
-        onClick={() => showFilter && showFilter('estado', '')}
-      />
       <CreateButton sx={buttonStyles} />
       <ExportButton sx={buttonStyles} />
     </TopToolbar>
@@ -124,9 +120,9 @@ const ProjectGrid = () => {
                 <PieChart width={100} height={100}>
                   <Pie
                     data={[
-                      { name: 'Cubierto', value: project.donacionesRecibidas },
+                      { name: "Cubierto", value: project.donacionesRecibidas },
                       {
-                        name: 'Faltante',
+                        name: "Faltante",
                         value: Math.max(
                           project.costoTotal - project.donacionesRecibidas,
                           0
@@ -136,12 +132,13 @@ const ProjectGrid = () => {
                     dataKey="value"
                     outerRadius={40}
                   >
-                    <Cell fill={isFullyFunded ? '#ff0000' : '#82ca9d'} />
+                    <Cell fill={isFullyFunded ? "#ff0000" : "#82ca9d"} />
                     <Cell fill="#d0ed57" />
                   </Pie>
                 </PieChart>
                 <Typography variant="body2" color={colors.grey[100]}>
-                  Estado: {isFullyFunded ? 'Fondos Suficientes' : project.estado}
+                  Estado:{" "}
+                  {isFullyFunded ? "Fondos Suficientes" : project.estado}
                 </Typography>
                 <Typography variant="body2" color={colors.grey[100]}>
                   Nivel de Urgencia: {project.nivelUrgencia}
@@ -154,7 +151,7 @@ const ProjectGrid = () => {
                   to={`/projects/${project.id}/show`}
                   sx={{
                     color: colors.greenAccent[500],
-                    '&:hover': {
+                    "&:hover": {
                       color: colors.greenAccent[100],
                     },
                   }}
@@ -176,10 +173,7 @@ export const ProjectList = (props: ListProps) => {
 
   return (
     <ListContextProvider value={listContext}>
-      <ListToolbar
-        filters={ProjectFilter}
-        actions={<ListActions />}
-      />
+      <ListToolbar filters={ProjectFilter} actions={<ListActions />} />
       <ProjectGrid />
     </ListContextProvider>
   );

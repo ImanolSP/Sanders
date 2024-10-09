@@ -1,125 +1,121 @@
-import { fetchUtils } from 'react-admin';
-import { stringify } from 'query-string';
+// src/Pages/Projects/ProjectCreate.tsx
 
-const apiUrl = 'https://localhost:3000';
-const httpClient = fetchUtils.fetchJson;
+import React, { useEffect, useState } from 'react';
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  DateInput,
+  ReferenceArrayInput,
+  SelectArrayInput,
+  useRedirect,
+  useDataProvider,
+  Toolbar,
+  SaveButton,
+  FormDataConsumer,
+} from 'react-admin';
+import { Typography } from '@mui/material';
+import { Project } from '../../interfaces/Project';
+import { DataProvider } from 'react-admin';
 
-export const basedatos={
-    getList: async (resource, params) => {
-        const { page, perPage } = params.pagination;
-        const { field, order } = params.sort;
-        const query = {
-            sort: JSON.stringify([field, order]),
-            range: JSON.stringify([(page - 1) * perPage, page * perPage - 1]),
-            filter: JSON.stringify(params.filter),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        const { json, headers } = await httpClient(url, { signal: params.signal });
-        return {
-            data: json,
-            total: parseInt(headers.get('content-range').split('/').pop(), 10),
-        };
-    },
+export const ProjectCreate = (props: any) => {
+  const redirect = useRedirect();
+  const dataProvider: DataProvider = useDataProvider();
 
-    getOne: async (resource, params) => {
-        const url = `${apiUrl}/${resource}/${params.id}`;
-        const { json } = await httpClient(url);
-    
-        // Map the `_id` field to `id` for React Admin
-        const transformedData = { ...json, id: json._id };
-        delete transformedData._id;
-    
-        return { data: transformedData };
-    },
+  // Custom Toolbar
+  const MyToolbar = (props: any) => (
+    <Toolbar {...props}>
+      <SaveButton
+        mutationOptions={{
+          onSuccess: () => {
+            redirect('/projects');
+          },
+        }}
+      />
+    </Toolbar>
+  );
 
-    getMany: async (resource, params) => {
-        const query = {
-            filter: JSON.stringify({ ids: params.ids }),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        const { json } = await httpClient(url, { signal: params.signal });
-        return { data: json };
-    },
+  return (
+    <Create {...props}>
+      <SimpleForm toolbar={<MyToolbar />}>
+        <ProjectFormFields dataProvider={dataProvider} />
+      </SimpleForm>
+    </Create>
+  );
+};
 
-    getManyReference: async (resource, params) => {
-        const { page, perPage } = params.pagination;
-        const { field, order } = params.sort;
-        const query = {
-            sort: JSON.stringify([field, order]),
-            range: JSON.stringify([(page - 1) * perPage, page * perPage - 1]),
-            filter: JSON.stringify({
-                ...params.filter,
-                [params.target]: params.id,
-            }),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        const { json, headers } = await httpClient(url, { signal: params.signal });
-        return {
-            data: json,
-            total: parseInt(headers.get('content-range').split('/').pop(), 10),
-        };
-    },
+const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => {
+  const [maxAssignable, setMaxAssignable] = useState<number>(100);
 
-    create: async (resource, params) => {
-        const { json } = await httpClient(`${apiUrl}/${resource}`, {
-            method: 'POST',
-            body: JSON.stringify(params.data),
-        })
-        console.log("PRINTING JSONCREATE")
-        console.log(JSON.stringify(json));
+  // Function to get total assigned percentage
+  const getTotalAssignedPercentage = async (): Promise<number> => {
+    const projects = await dataProvider.getList<Project>('projects', {
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: 'id', order: 'ASC' },
+      filter: {},
+    });
 
-        console.log(JSON.stringify(json, undefined, 4));
-        if (!json || !json.id) {
-            throw new Error('The API response does not contain _id.');
-        }
-        return { data: { ...params.data, id: json.id }, };
-    },
+    const totalAssigned = projects.data.reduce(
+      (sum: number, project: Project) => sum + (project.porcentajeAsignado || 0),
+      0
+    );
 
-    update: async (resource, params) => {
-        const url = `${apiUrl}/${resource}`; // No ID in the URL
-        const { json } = await httpClient(url, {
-            method: 'PUT',
-            body: JSON.stringify({
-                id: params.id,       // Include the ID in the body
-                ...params.data       // Merge the rest of the data
-            }),
-        });
-        const transformedData = { ...json, id: json._id };
-        delete transformedData._id;
-    
-        return { data: transformedData };
-    },
+    return totalAssigned;
+  };
 
-    updateMany: async (resource, params) => {
-        const query = {
-            filter: JSON.stringify({ id: params.ids}),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        const { json } = await httpClient(url, {
-            method: 'PUT',
-            body: JSON.stringify(params.data),
-        })
-        return { data: json };
-    },
+  // Validation of assigned percentage
+  const validatePorcentaje = async (value: number) => {
+    const totalAssigned = await getTotalAssignedPercentage();
+    const maxAssignablePercentage = 100 - totalAssigned;
 
-    delete: async (resource, params) => {
-        const url = `${apiUrl}/${resource}`; // No ID in the URL
-        const { json } = await httpClient(url, {
-            method: 'DELETE',
-            body: JSON.stringify({ id: params.id }) // Send ID in the body
-        });
-        return { data: json };
-    },
+    if (value > maxAssignablePercentage) {
+      return `El porcentaje máximo que puedes asignar es ${maxAssignablePercentage}%.`;
+    }
 
-    deleteMany: async (resource, params) => {
-        const query = {
-            filter: JSON.stringify({ id: params.ids}),
-        };
-        const url = `${apiUrl}/${resource}?${stringify(query)}`;
-        const { json } = await httpClient(url, {
-            method: 'DELETE',
-            body: JSON.stringify(params.data),
-        });
-        return { data: json };
-    },
+    return undefined;
+  };
+
+  return (
+    <>
+      <TextInput source="nombre" label="Nombre" fullWidth />
+      <TextInput source="descripcion" label="Descripción" multiline fullWidth />
+      <NumberInput source="nivelUrgencia" label="Nivel de Urgencia" />
+      <DateInput source="fechaInicio" label="Fecha de Inicio" />
+      <DateInput source="fechaFinEstimada" label="Fecha de Fin Estimada" />
+      <NumberInput source="costoTotal" label="Costo Total" />
+      <FormDataConsumer>
+        {({ formData, ...rest }) => {
+          useEffect(() => {
+            const fetchMaxAssignable = async () => {
+              const totalAssigned = await getTotalAssignedPercentage();
+              setMaxAssignable(100 - (totalAssigned + (formData.porcentajeAsignado || 0)));
+            };
+            fetchMaxAssignable();
+          }, [formData.porcentajeAsignado]);
+
+          return (
+            <>
+              <NumberInput
+                source="porcentajeAsignado"
+                label="Porcentaje Asignado"
+                validate={validatePorcentaje}
+              />
+              <Typography variant="body2">
+                Porcentaje restante disponible: {maxAssignable}%
+              </Typography>
+            </>
+          );
+        }}
+      </FormDataConsumer>
+      <TextInput source="ubicacion" label="Ubicación" fullWidth />
+      <ReferenceArrayInput
+        label="Usuarios Asignados"
+        source="usuariosAsignados"
+        reference="usuarios"
+      >
+        <SelectArrayInput optionText="usuario" />
+      </ReferenceArrayInput>
+    </>
+  );
 };
