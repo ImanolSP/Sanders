@@ -7,38 +7,32 @@ import {
   TextInput,
   NumberInput,
   DateInput,
-  ReferenceArrayInput,
-  SelectArrayInput,
   useRedirect,
   useDataProvider,
-  Toolbar,
-  SaveButton,
-  FormDataConsumer,
+  useNotify,
+  SelectInput,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import { Project } from '../../interfaces/Project';
 import { DataProvider } from 'react-admin';
+import { useFormContext } from 'react-hook-form';
 
 export const ProjectCreate = (props: any) => {
   const redirect = useRedirect();
+  const notify = useNotify();
   const dataProvider: DataProvider = useDataProvider();
 
-  // Custom Toolbar
-  const MyToolbar = (props: any) => (
-    <Toolbar {...props}>
-      <SaveButton
-        mutationOptions={{
-          onSuccess: () => {
-            redirect('/projects');
-          },
-        }}
-      />
-    </Toolbar>
-  );
-
   return (
-    <Create {...props}>
-      <SimpleForm toolbar={<MyToolbar />}>
+    <Create
+      {...props}
+      mutationOptions={{
+        onSuccess: () => {
+          notify('Proyecto creado con éxito', { type: 'info' });
+          redirect('/projects');
+        },
+      }}
+    >
+      <SimpleForm>
         <ProjectFormFields dataProvider={dataProvider} />
       </SimpleForm>
     </Create>
@@ -47,26 +41,38 @@ export const ProjectCreate = (props: any) => {
 
 const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => {
   const [maxAssignable, setMaxAssignable] = useState<number>(100);
+  const [totalAssigned, setTotalAssigned] = useState<number>(0);
 
-  // Function to get total assigned percentage
-  const getTotalAssignedPercentage = async (): Promise<number> => {
-    const projects = await dataProvider.getList<Project>('projects', {
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: 'id', order: 'ASC' },
-      filter: {},
-    });
+  const { watch } = useFormContext();
+  const porcentajeAsignado = watch('porcentajeAsignado') || 0;
 
-    const totalAssigned = projects.data.reduce(
-      (sum: number, project: Project) => sum + (project.porcentajeAsignado || 0),
-      0
-    );
+  // Fetch total assigned percentage when the component mounts
+  useEffect(() => {
+    const fetchTotalAssigned = async () => {
+      try {
+        const projects = await dataProvider.getList<Project>('projects', {
+          pagination: { page: 1, perPage: 1000 },
+          sort: { field: 'id', order: 'ASC' },
+          filter: {},
+        });
 
-    return totalAssigned;
-  };
+        const total = projects.data.reduce(
+          (sum: number, project: Project) => sum + (project.porcentajeAsignado || 0),
+          0
+        );
 
-  // Validation of assigned percentage
-  const validatePorcentaje = async (value: number) => {
-    const totalAssigned = await getTotalAssignedPercentage();
+        setTotalAssigned(total);
+        setMaxAssignable(100 - total);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+
+    fetchTotalAssigned();
+  }, [dataProvider]);
+
+  // Simplify or remove the validation function temporarily
+  const validatePorcentaje = (value: number) => {
     const maxAssignablePercentage = 100 - totalAssigned;
 
     if (value > maxAssignablePercentage) {
@@ -84,38 +90,28 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
       <DateInput source="fechaInicio" label="Fecha de Inicio" />
       <DateInput source="fechaFinEstimada" label="Fecha de Fin Estimada" />
       <NumberInput source="costoTotal" label="Costo Total" />
-      <FormDataConsumer>
-        {({ formData, ...rest }) => {
-          useEffect(() => {
-            const fetchMaxAssignable = async () => {
-              const totalAssigned = await getTotalAssignedPercentage();
-              setMaxAssignable(100 - (totalAssigned + (formData.porcentajeAsignado || 0)));
-            };
-            fetchMaxAssignable();
-          }, [formData.porcentajeAsignado]);
 
-          return (
-            <>
-              <NumberInput
-                source="porcentajeAsignado"
-                label="Porcentaje Asignado"
-                validate={validatePorcentaje}
-              />
-              <Typography variant="body2">
-                Porcentaje restante disponible: {maxAssignable}%
-              </Typography>
-            </>
-          );
-        }}
-      </FormDataConsumer>
+      <NumberInput
+        source="porcentajeAsignado"
+        label="Porcentaje Asignado"
+        validate={validatePorcentaje}
+      />
+      <Typography variant="body2">
+        Porcentaje restante disponible: {maxAssignable - porcentajeAsignado}%
+      </Typography>
+
       <TextInput source="ubicacion" label="Ubicación" fullWidth />
-      <ReferenceArrayInput
-        label="Usuarios Asignados"
-        source="usuariosAsignados"
-        reference="usuarios"
-      >
-        <SelectArrayInput optionText="usuario" />
-      </ReferenceArrayInput>
+
+      <SelectInput
+        source="estado"
+        label="Estado"
+        choices={[
+          { id: 'en progreso', name: 'En Progreso' },
+          { id: 'finalizado', name: 'Finalizado' },
+          { id: 'fondos suficientes', name: 'Fondos Suficientes' },
+        ]}
+        defaultValue="en progreso" // Set default value here
+      />
     </>
   );
 };

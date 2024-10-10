@@ -7,8 +7,7 @@ import {
   TextInput,
   NumberInput,
   DateInput,
-  ReferenceArrayInput,
-  SelectArrayInput,
+
   useRedirect,
   useDataProvider,
   Toolbar,
@@ -116,13 +115,7 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
         }}
       </FormDataConsumer>
       <TextInput source="ubicacion" label="Ubicación" fullWidth />
-      <ReferenceArrayInput
-        label="Usuarios Asignados"
-        source="usuariosAsignados"
-        reference="usuarios"
-      >
-        <SelectArrayInput optionText="usuario" />
-      </ReferenceArrayInput>
+
     </>
   );
 };

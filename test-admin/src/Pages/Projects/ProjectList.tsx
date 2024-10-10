@@ -35,6 +35,7 @@ export const ProjectFilter = [
     label="Estado"
     source="estado"
     choices={[
+      { id: '', name: 'Todos' },
       { id: "en progreso", name: "En Progreso" },
       { id: "finalizado", name: "Finalizado" },
       { id: "fondos suficientes", name: "Fondos Suficientes" },

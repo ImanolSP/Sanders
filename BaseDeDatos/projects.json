@@ -7,9 +7,7 @@
       "fechaInicio": "2023-09-01",
       "fechaFinEstimada": "2024-03-01",
       "costoTotal": 20000,
-      "porcentajeAsignado": 20,
-      "usuariosAsignados": ["userId1", "userId2"],
-      "proveedores": ["Proveedor A", "Proveedor B"],
+      "porcentajeAsignado": 10,
       "ubicacion": "Comunidad X",
       "donacionesRecibidas": 10000
     },
@@ -21,9 +19,7 @@
       "fechaInicio": "2022-05-01",
       "fechaFinEstimada": "2022-12-01",
       "costoTotal": 30000,
-      "porcentajeAsignado": 50,
-      "usuariosAsignados": ["userId3", "userId4"],
-      "proveedores": ["Proveedor C"],
+      "porcentajeAsignado": 20,
       "ubicacion": "Comunidad Y",
       "donacionesRecibidas": 30000
     }

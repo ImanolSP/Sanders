@@ -7,9 +7,7 @@ import {
   TextField,
   NumberField,
   DateField,
-  ReferenceArrayField,
-  SingleFieldList,
-  ChipField,
+
   useRecordContext,
   useNotify,
   useRefresh,
@@ -76,15 +74,7 @@ const ProjectShowContent = () => {
         label="Porcentaje Asignado de Donaciones"
       />
       <TextField source="ubicacion" label="Ubicación" />
-      <ReferenceArrayField
-        label="Usuarios Asignados"
-        reference="usuarios"
-        source="usuariosAsignados"
-      >
-        <SingleFieldList>
-          <ChipField source="usuario" />
-        </SingleFieldList>
-      </ReferenceArrayField>
+
       {/* Gráfico de distribución de financiamiento */}
       <Typography variant="h6" sx={{ color: colors.grey[100] }}>
         Distribución de Financiamiento

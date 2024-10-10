@@ -10,8 +10,6 @@ export interface Project {
   fechaFinEstimada: string;
   costoTotal: number;
   porcentajeAsignado: number;
-  usuariosAsignados: string[];
-  proveedores?: string[];
   ubicacion: string;
   donacionesRecibidas: number;
   fondosCompletos?: boolean; // Nuevo campo
