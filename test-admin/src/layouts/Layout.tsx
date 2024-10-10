@@ -45,6 +45,7 @@ export const LayoutButton = (props: ButtonProps) => {
         padding: "10px 20px",
         borderRadius: "8px",
         boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+        margin: "5px",
       }}
     >
       {props.children}

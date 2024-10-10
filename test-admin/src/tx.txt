@@ -1,130 +1,174 @@
-// src/Pages/Projects/ProjectCreate.tsx
+// src/Pages/Projects/ProjectShow.tsx
 
-import React, { useEffect, useState } from 'react';
+import React from "react";
 import {
-  Create,
-  SimpleForm,
-  TextInput,
-  NumberInput,
-  DateInput,
-
+  Show,
+  SimpleShowLayout,
+  TextField,
+  NumberField,
+  DateField,
+  useRecordContext,
+  useNotify,
+  useRefresh,
   useRedirect,
   useDataProvider,
-  Toolbar,
-  SaveButton,
-  FormDataConsumer,
-  SelectInput,
+  EditButton,
+  DeleteButton,
+} from "react-admin";
+import { Typography, useTheme, Button, CardActions } from "@mui/material";
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { Project } from "../../interfaces/Project";
+import { tokens } from "../../theme";
 
-} from 'react-admin';
-import { Typography } from '@mui/material';
-import { Project } from '../../interfaces/Project';
-import { DataProvider } from 'react-admin';
+export const ProjectShow = (props: any) => (
+  <Show {...props} actions={false}>
+    <ProjectShowContent />
+  </Show>
+);
 
-export const ProjectCreate = (props: any) => {
+const ProjectShowContent = () => {
+  const record = useRecordContext<Project>();
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const notify = useNotify();
+  const refresh = useRefresh();
   const redirect = useRedirect();
-  const dataProvider: DataProvider = useDataProvider();
+  const dataProvider = useDataProvider();
 
-  // Custom Toolbar
-  const MyToolbar = (props: any) => (
-    <Toolbar {...props}>
-      <SaveButton
-        mutationOptions={{
-          onSuccess: () => {
-            redirect('/projects');
+  if (!record) return <div>Cargando...</div>;
+
+  const handleChangeEstado = async () => {
+    const newEstado =
+      record.estado === "en progreso" ? "finalizado" : "en progreso";
+    try {
+      await dataProvider.update("projects", {
+        id: record.id,
+        data: { ...record, estado: newEstado },
+        previousData: record,
+      });
+      notify("Estado actualizado correctamente", { type: "success" });
+      refresh();
+      redirect("/projects");
+    } catch (error) {
+      notify("Error al actualizar el estado", { type: "error" });
+    }
+  };
+
+  // Determine if the project has reached full funding
+  const isFullyFunded = record.donacionesRecibidas >= record.costoTotal;
+
+  // Prepare data for the chart
+  const data = [
+    { name: "Cubierto", value: record.donacionesRecibidas },
+    {
+      name: "Faltante",
+      value: Math.max(record.costoTotal - record.donacionesRecibidas, 0),
+    },
+  ];
+
+  const colorsToUse = isFullyFunded
+    ? [colors.redAccent[500], colors.blueAccent[500]]
+    : [colors.greenAccent[500], colors.blueAccent[500]];
+
+  return (
+    <SimpleShowLayout>
+      <Typography
+        variant="h4"
+        sx={{ color: colors.grey[100], marginBottom: 2 }}
+      >
+        {record.nombre}
+      </Typography>
+      <TextField source="descripcion" label="Descripción" />
+      <TextField source="estado" label="Estado" />
+      <NumberField source="nivelUrgencia" label="Nivel de Urgencia" />
+      <DateField source="fechaInicio" label="Fecha de Inicio" />
+      <DateField source="fechaFinEstimada" label="Fecha de Fin Estimada" />
+      <NumberField source="costoTotal" label="Costo Total" />
+      <NumberField source="donacionesRecibidas" label="Donaciones Recibidas" />
+      <NumberField
+        source="porcentajeAsignado"
+        label="Porcentaje Asignado de Donaciones"
+      />
+      <TextField source="ubicacion" label="Ubicación" />
+
+      {/* Financing Distribution Chart */}
+      <Typography variant="h6" sx={{ color: colors.grey[100], marginTop: 4 }}>
+        Distribución de Financiamiento
+      </Typography>
+
+      <PieChart width={400} height={400}>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          innerRadius={40}
+          outerRadius={140}
+          label={({ index, x, y, value }) => (
+            <text
+              x={x}
+              y={y}
+              fill={colors.grey[100]}
+              textAnchor="middle"
+              dominantBaseline="central"
+              style={{ fontSize: "14px" }}
+            >
+              {data[index].name}: {value}
+            </text>
+          )}
+        >
+          {data.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={colorsToUse[index % colorsToUse.length]}
+            />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            backgroundColor: colors.primary[400],
+            color: colors.grey[100],
+            border: `1px solid ${colors.grey[100]}`,
+          }}
+        />
+        <Legend
+          formatter={(value) => (
+            <span style={{ color: colors.grey[100] }}>{value}</span>
+          )}
+        />
+      </PieChart>
+
+      {/* Button to change project status */}
+      <Button
+        variant="contained"
+        onClick={handleChangeEstado}
+        sx={{
+          marginTop: 2,
+          backgroundColor: colors.greenAccent[500],
+          color: colors.grey[100],
+          "&:hover": {
+            backgroundColor: colors.greenAccent[700],
           },
         }}
-      />
-    </Toolbar>
-  );
+      >
+        {`Marcar como ${
+          record.estado === "en progreso" ? "Finalizado" : "En Progreso"
+        }`}
+      </Button>
 
-  return (
-    <Create {...props}>
-      <SimpleForm toolbar={<MyToolbar />}>
-        <ProjectFormFields dataProvider={dataProvider} />
-      </SimpleForm>
-    </Create>
-  );
-};
-
-const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => {
-  const [maxAssignable, setMaxAssignable] = useState<number>(100);
-
-
-
-  // Function to get total assigned percentage
-  const getTotalAssignedPercentage = async (): Promise<number> => {
-    const projects = await dataProvider.getList<Project>('projects', {
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: 'id', order: 'ASC' },
-      filter: {},
-    });
-
-    const totalAssigned = projects.data.reduce(
-      (sum: number, project: Project) => sum + (project.porcentajeAsignado || 0),
-      0
-    );
-
-    return totalAssigned;
-  };
-
-  // Validation of assigned percentage
-  const validatePorcentaje = async (value: number) => {
-    const totalAssigned = await getTotalAssignedPercentage();
-    const maxAssignablePercentage = 100 - totalAssigned;
-
-    if (value > maxAssignablePercentage) {
-      return `El porcentaje máximo que puedes asignar es ${maxAssignablePercentage}%.`;
-    }
-
-    return undefined;
-  };
-
-  return (
-    <>
-      <TextInput source="nombre" label="Nombre" fullWidth />
-      <TextInput source="descripcion" label="Descripción" multiline fullWidth />
-      <NumberInput source="nivelUrgencia" label="Nivel de Urgencia" />
-      <DateInput source="fechaInicio" label="Fecha de Inicio" />
-      <DateInput source="fechaFinEstimada" label="Fecha de Fin Estimada" />
-      <NumberInput source="costoTotal" label="Costo Total" />
-      <FormDataConsumer>
-        {({ formData, ...rest }) => {
-          useEffect(() => {
-            const fetchMaxAssignable = async () => {
-              const totalAssigned = await getTotalAssignedPercentage();
-              setMaxAssignable(100 - (totalAssigned + (formData.porcentajeAsignado || 0)));
-            };
-            fetchMaxAssignable();
-          }, [formData.porcentajeAsignado]);
-
-          return (
-            <>
-              <NumberInput
-                source="porcentajeAsignado"
-                label="Porcentaje Asignado"
-                validate={validatePorcentaje}
-              />
-              <Typography variant="body2">
-                Porcentaje restante disponible: {maxAssignable}%
-              </Typography>
-            </>
-          );
-        }}
-        
-
-      </FormDataConsumer>
-      <TextInput source="ubicacion" label="Ubicación" fullWidth />
-
-      <SelectInput
-        source="estado"
-        label="Estado"
-        choices={[
-          { id: 'en progreso', name: 'En Progreso' },
-          { id: 'finalizado', name: 'Finalizado' },
-          { id: 'fondos suficientes', name: 'Fondos Suficientes' },
-        ]}
-        defaultValue="en progreso" // Set default value here
-      />
-    </>
+      {/* Edit and Delete buttons */}
+      <CardActions>
+        <EditButton
+          sx={{
+            color: colors.greenAccent[500],
+            "&:hover": {
+              color: colors.greenAccent[100],
+            },
+          }}
+        />
+        <DeleteButton />
+      </CardActions>
+    </SimpleShowLayout>
   );
 };

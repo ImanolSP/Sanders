@@ -1,13 +1,12 @@
 // src/Pages/Projects/ProjectShow.tsx
 
-import React from 'react';
+import React, { useState } from "react";
 import {
   Show,
   SimpleShowLayout,
   TextField,
   NumberField,
   DateField,
-
   useRecordContext,
   useNotify,
   useRefresh,
@@ -15,14 +14,14 @@ import {
   useDataProvider,
   EditButton,
   DeleteButton,
-} from 'react-admin';
-import { Typography, useTheme, Button, CardActions } from '@mui/material';
-import DonutChart from 'react-donut-chart';
-import { Project } from '../../interfaces/Project';
-import { tokens } from '../../theme';
+} from "react-admin";
+import { Typography, useTheme, Button, CardActions } from "@mui/material";
+import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { Project } from "../../interfaces/Project";
+import { tokens } from "../../theme";
 
 export const ProjectShow = (props: any) => (
-  <Show {...props}>
+  <Show {...props} actions={false}>
     <ProjectShowContent />
   </Show>
 );
@@ -35,31 +34,53 @@ const ProjectShowContent = () => {
   const refresh = useRefresh();
   const redirect = useRedirect();
   const dataProvider = useDataProvider();
+  const [displayMode, setDisplayMode] = useState<"value" | "percentage">(
+    "value"
+  );
 
   if (!record) return <div>Cargando...</div>;
 
   const handleChangeEstado = async () => {
-    const newEstado = record.estado === 'en progreso' ? 'finalizado' : 'en progreso';
+    const newEstado =
+      record.estado === "en progreso" ? "finalizado" : "en progreso";
     try {
-      await dataProvider.update('projects', {
+      await dataProvider.update("projects", {
         id: record.id,
         data: { ...record, estado: newEstado },
         previousData: record,
       });
-      notify('Estado actualizado correctamente', { type: 'success' });
+      notify("Estado actualizado correctamente", { type: "success" });
       refresh();
-      redirect('/projects');
+      redirect("/projects");
     } catch (error) {
-      notify('Error al actualizar el estado', { type: 'error' });
+      notify("Error al actualizar el estado", { type: "error" });
     }
   };
 
-  // Determinar si el proyecto ha alcanzado los fondos completos
+  // Determine if the project has reached full funding
   const isFullyFunded = record.donacionesRecibidas >= record.costoTotal;
+
+  // Prepare data for the chart
+  const data = [
+    { name: "Cubierto", value: record.donacionesRecibidas },
+    {
+      name: "Faltante",
+      value: Math.max(record.costoTotal - record.donacionesRecibidas, 0),
+    },
+  ];
+
+  const totalValue = data.reduce((sum, entry) => sum + entry.value, 0);
+
+  const colorsToUse = isFullyFunded
+    ? [colors.redAccent[500], colors.blueAccent[500]]
+    : [colors.greenAccent[500], colors.blueAccent[500]];
 
   return (
     <SimpleShowLayout>
-      <Typography variant="h4" sx={{ color: colors.grey[100] }}>
+      <Typography
+        variant="h4"
+        sx={{ color: colors.grey[100], marginBottom: 2 }}
+      >
         {record.nombre}
       </Typography>
       <TextField source="descripcion" label="Descripción" />
@@ -75,36 +96,112 @@ const ProjectShowContent = () => {
       />
       <TextField source="ubicacion" label="Ubicación" />
 
-      {/* Gráfico de distribución de financiamiento */}
-      <Typography variant="h6" sx={{ color: colors.grey[100] }}>
+      {/* Financing Distribution Chart */}
+      <Typography variant="h6" sx={{ color: colors.grey[100], marginTop: 4 }}>
         Distribución de Financiamiento
       </Typography>
-      <DonutChart 
-        data={[
-          {
-            label: 'Cubierto',
-            value: record.donacionesRecibidas,
-          },
-          {
-            label: 'Faltante',
-            value: Math.max(record.costoTotal - record.donacionesRecibidas, 0),
-          },
-        ]}
-        colors={isFullyFunded ? ['#ff0000', '#d0ed57'] : ['#82ca9d', '#d0ed57']}
-        
-      />
-      {/* Botón para cambiar estado */}
+
+      <PieChart width={400} height={400}>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          innerRadius={60}
+          outerRadius={100}
+          label={({ index, x, y, value }) => {
+            const displayValue =
+              displayMode === "value"
+                ? Math.round(value)
+                : `${((value / totalValue) * 100).toFixed(2)}%`;
+
+            return (
+              <text
+                x={x}
+                y={y}
+                fill={colors.grey[100]}
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={{ fontSize: "14px" }}
+              >
+                {data[index].name}: {displayValue}
+              </text>
+            );
+          }}
+        >
+          {data.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={colorsToUse[index % colorsToUse.length]}
+            />
+          ))}
+        </Pie>
+        <Tooltip
+          formatter={(value: number) =>
+            displayMode === "value"
+              ? Math.round(value)
+              : `${((value / totalValue) * 100).toFixed(2)}%`
+          }
+          contentStyle={{
+            backgroundColor: colors.primary[400],
+            color: colors.grey[100],
+            border: `1px solid ${colors.grey[100]}`,
+          }}
+        />
+        <Legend
+          formatter={(value) => (
+            <span style={{ color: colors.grey[100] }}>{value}</span>
+          )}
+        />
+      </PieChart>
+
+      {/* Toggle Button for Value/Percentage */}
       <Button
         variant="contained"
-        color="primary"
-        onClick={handleChangeEstado}
-        sx={{ marginTop: 2 }}
+        onClick={() =>
+          setDisplayMode(displayMode === "value" ? "percentage" : "value")
+        }
+        sx={{
+          marginTop: 2,
+          backgroundColor: colors.primary[400],
+          color: colors.grey[100],
+          "&:hover": {
+            backgroundColor: colors.redAccent[500],
+          },
+        }}
       >
-        {`Marcar como ${record.estado === 'en progreso' ? 'Finalizado' : 'En Progreso'}`}
+        {`Mostrar en ${displayMode === "value" ? "Porcentajes" : "Valores"}`}
       </Button>
-      {/* Botones de edición y eliminación */}
+
+      {/* Button to change project status */}
+      <Button
+        variant="contained"
+        onClick={handleChangeEstado}
+        sx={{
+          marginTop: 2,
+          backgroundColor: colors.primary[400],
+          color: colors.grey[100],
+          "&:hover": {
+            backgroundColor: colors.redAccent[500],
+          },
+        }}
+      >
+        {`Marcar como ${
+          record.estado === "en progreso" ? "Finalizado" : "En Progreso"
+        }`}
+      </Button>
+
+      {/* Edit and Delete buttons */}
       <CardActions>
-        <EditButton />
+        <EditButton
+          sx={{
+            color: colors.greenAccent[500],
+            "&:hover": {
+              color: colors.redAccent[500],
+            },
+          }}
+        />
         <DeleteButton />
       </CardActions>
     </SimpleShowLayout>

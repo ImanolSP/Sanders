@@ -8,10 +8,10 @@ import {
   ListToolbar,
   useListContext,
   TopToolbar,
-  ExportButton,
-  CreateButton,
   TextInput,
   SelectInput,
+  useRedirect,
+  useNotify,
 } from "react-admin";
 import {
   Card,
@@ -27,7 +27,12 @@ import { PieChart, Pie, Cell } from "recharts";
 import { Project } from "../../interfaces/Project";
 import { tokens } from "../../theme";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import MuiButton from "@mui/material/Button";
+import DescriptionIcon from "@mui/icons-material/Description"; // For Excel
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf"; // For PDF
+import GridOnIcon from "@mui/icons-material/GridOn"; // For CSV
+import AddIcon from "@mui/icons-material/Add"; // For Create
+import { LayoutButton } from "../../layouts/Layout";
+import { exportData } from "../../componentes/Export"; // Import your export function
 
 // Definir tus filtros
 export const ProjectFilter = [
@@ -35,7 +40,7 @@ export const ProjectFilter = [
     label="Estado"
     source="estado"
     choices={[
-      { id: '', name: 'Todos' },
+      { id: "", name: "Todos" },
       { id: "en progreso", name: "En Progreso" },
       { id: "finalizado", name: "Finalizado" },
       { id: "fondos suficientes", name: "Fondos Suficientes" },
@@ -45,48 +50,46 @@ export const ProjectFilter = [
   <TextInput label="Buscar por Nombre" source="nombre" alwaysOn />,
 ];
 
-// Componente personalizado para el botón de filtrar
-const StyledFilterButton = (props: any) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-
-  return (
-    <Button
-      variant="contained"
-      startIcon={<FilterListIcon />}
-      onClick={props.onClick}
-      sx={{
-        color: colors.grey[100],
-        backgroundColor: colors.blueAccent[700],
-        "&:hover": {
-          backgroundColor: colors.blueAccent[500],
-        },
-        margin: "5px",
-      }}
-    >
-      Filtrar
-    </Button>
-  );
-};
-
 // Acciones personalizadas
 const ListActions = () => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  const { data } = useListContext<Project>();
+  const redirect = useRedirect();
+  const notify = useNotify();
 
-  const buttonStyles = {
-    color: colors.grey[100],
-    backgroundColor: colors.blueAccent[700],
-    "&:hover": {
-      backgroundColor: colors.blueAccent[500],
-    },
-    margin: "5px",
+  const handleExport = (format: "xlsx" | "pdf" | "csv") => {
+    if (data && data.length > 0) {
+      exportData(data, format);
+      notify(`Exportando datos a formato ${format.toUpperCase()}`, { type: 'info' });
+    } else {
+      console.error("No hay datos para exportar.");
+      notify("No hay datos para exportar.", { type: 'warning' });
+    }
   };
 
   return (
     <TopToolbar>
-      <CreateButton sx={buttonStyles} />
-      <ExportButton sx={buttonStyles} />
+      <LayoutButton
+        onClick={() => redirect('/projects/create')}
+        startIcon={<AddIcon />}
+        sx={{ margin: "5px" }}
+      >
+        Crear
+      </LayoutButton>
+      <LayoutButton
+        onClick={() => handleExport("xlsx")}
+        startIcon={<DescriptionIcon />}
+        sx={{ margin: "5px" }}
+      >
+        Excel
+      </LayoutButton>
+
+      <LayoutButton
+        onClick={() => handleExport("csv")}
+        startIcon={<GridOnIcon />}
+        sx={{ margin: "5px" }}
+      >
+        CSV
+      </LayoutButton>
     </TopToolbar>
   );
 };
@@ -138,8 +141,7 @@ const ProjectGrid = () => {
                   </Pie>
                 </PieChart>
                 <Typography variant="body2" color={colors.grey[100]}>
-                  Estado:{" "}
-                  {isFullyFunded ? "Fondos Suficientes" : project.estado}
+                  Estado: {isFullyFunded ? "Fondos Suficientes" : project.estado}
                 </Typography>
                 <Typography variant="body2" color={colors.grey[100]}>
                   Nivel de Urgencia: {project.nivelUrgencia}
