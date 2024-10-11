@@ -1,4 +1,6 @@
 // src/Pages/Users/Users.tsx
+
+import React from "react";
 import {
   List,
   Datagrid,
@@ -15,6 +17,8 @@ import {
   TopToolbar,
   useListContext,
   ListProps,
+  useRedirect,
+  useNotify,
 } from "react-admin";
 import { tokens } from "../../theme";
 import { Button, useTheme, useMediaQuery, Theme } from "@mui/material";
@@ -24,28 +28,52 @@ import { LayoutButton } from "../../layouts/Layout"; // Importamos el LayoutButt
 import DescriptionIcon from '@mui/icons-material/Description'; // For Excel
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'; // For PDF
 import GridOnIcon from '@mui/icons-material/GridOn'; // For CSV
+import AddIcon from '@mui/icons-material/Add'; // For Create
 
 // Toolbar personalizada para exportar datos
 const ListActions = () => {
-  const { data } = useListContext(); // Utilizamos el contexto para acceder a los datos de la lista
+  const { data } = useListContext();
+  const redirect = useRedirect();
+  const notify = useNotify();
 
   const handleExport = (format: "xlsx" | "pdf" | "csv") => {
     if (data && data.length > 0) {
       exportData(data, format);
+      notify(`Exportando datos a formato ${format.toUpperCase()}`, { type: 'info' });
     } else {
       console.error("No hay datos para exportar.");
+      notify("No hay datos para exportar.", { type: 'warning' });
     }
   };
 
   return (
     <TopToolbar>
-      <LayoutButton onClick={() => handleExport('xlsx')} startIcon={<DescriptionIcon />}>
+      <LayoutButton
+        onClick={() => redirect('/usuarios/create')}
+        startIcon={<AddIcon />}
+        sx={{ margin: "5px" }}
+      >
+        Crear
+      </LayoutButton>
+      <LayoutButton
+        onClick={() => handleExport('xlsx')}
+        startIcon={<DescriptionIcon />}
+        sx={{ margin: "5px" }}
+      >
         Excel
       </LayoutButton>
-      <LayoutButton onClick={() => handleExport('pdf')} startIcon={<PictureAsPdfIcon />}>
+      <LayoutButton
+        onClick={() => handleExport('pdf')}
+        startIcon={<PictureAsPdfIcon />}
+        sx={{ margin: "5px" }}
+      >
         PDF
       </LayoutButton>
-      <LayoutButton onClick={() => handleExport('csv')} startIcon={<GridOnIcon />}>
+      <LayoutButton
+        onClick={() => handleExport('csv')}
+        startIcon={<GridOnIcon />}
+        sx={{ margin: "5px" }}
+      >
         CSV
       </LayoutButton>
     </TopToolbar>

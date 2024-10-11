@@ -1,174 +1,211 @@
-// src/Pages/Projects/ProjectShow.tsx
+// src/Pages/Donaciones/Donaciones.tsx
 
 import React from "react";
 import {
-  Show,
-  SimpleShowLayout,
+  List,
+  Datagrid,
+  SimpleList,
+  DateField,
   TextField,
   NumberField,
-  DateField,
-  useRecordContext,
-  useNotify,
-  useRefresh,
-  useRedirect,
-  useDataProvider,
   EditButton,
+  Edit,
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
   DeleteButton,
+  TopToolbar,
+  useListContext,
+  ListProps,
+  DateInput,
+  SelectInput,
+  BooleanInput,
+  useRedirect,
+  useNotify,
 } from "react-admin";
-import { Typography, useTheme, Button, CardActions } from "@mui/material";
-import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { Project } from "../../interfaces/Project";
+import { Button } from "@mui/material";
+import { exportData } from "../../componentes/Export"; // Importamos la función
+import { useTheme } from "@mui/material/styles";
 import { tokens } from "../../theme";
+import { useMediaQuery, Theme } from "@mui/material";
+import { LayoutButton } from "../../layouts/Layout";
 
-export const ProjectShow = (props: any) => (
-  <Show {...props} actions={false}>
-    <ProjectShowContent />
-  </Show>
-);
+// Material-UI Icons
+import DescriptionIcon from "@mui/icons-material/Description"; // For Excel
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf"; // For PDF
+import GridOnIcon from "@mui/icons-material/GridOn"; // For CSV
+import AddIcon from "@mui/icons-material/Add"; // For Create
 
-const ProjectShowContent = () => {
-  const record = useRecordContext<Project>();
+interface Donador {
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+}
+
+interface DonacionRecord {
+  id: string;
+  monto: number;
+  fecha: string;
+  donador?: Donador;
+}
+
+export const DonadoresList = (props: ListProps) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const notify = useNotify();
-  const refresh = useRefresh();
-  const redirect = useRedirect();
-  const dataProvider = useDataProvider();
+  const isSmall = useMediaQuery<Theme>((theme) => theme.breakpoints.down("sm"));
 
-  if (!record) return <div>Cargando...</div>;
+  // Custom Toolbar for Export functionality
+  const ListActions = () => {
+    const { data } = useListContext<DonacionRecord>();
+    const redirect = useRedirect();
+    const notify = useNotify();
 
-  const handleChangeEstado = async () => {
-    const newEstado =
-      record.estado === "en progreso" ? "finalizado" : "en progreso";
-    try {
-      await dataProvider.update("projects", {
-        id: record.id,
-        data: { ...record, estado: newEstado },
-        previousData: record,
-      });
-      notify("Estado actualizado correctamente", { type: "success" });
-      refresh();
-      redirect("/projects");
-    } catch (error) {
-      notify("Error al actualizar el estado", { type: "error" });
-    }
+    const handleExport = (format: "xlsx" | "pdf" | "csv") => {
+      if (data && data.length > 0) {
+        exportData(data, format);
+        notify(`Exportando datos a formato ${format.toUpperCase()}`, { type: "info" });
+      } else {
+        console.error("No hay datos para exportar.");
+        notify("No hay datos para exportar.", { type: "warning" });
+      }
+    };
+
+    return (
+      <TopToolbar>
+        <LayoutButton
+          onClick={() => redirect("/donaciones/create")}
+          startIcon={<AddIcon />}
+          sx={{ margin: "5px" }}
+        >
+          Crear
+        </LayoutButton>
+        <LayoutButton
+          onClick={() => handleExport("xlsx")}
+          startIcon={<DescriptionIcon />}
+          sx={{ margin: "5px" }}
+        >
+          Excel
+        </LayoutButton>
+        <LayoutButton
+          onClick={() => handleExport("pdf")}
+          startIcon={<PictureAsPdfIcon />}
+          sx={{ margin: "5px" }}
+        >
+          PDF
+        </LayoutButton>
+        <LayoutButton
+          onClick={() => handleExport("csv")}
+          startIcon={<GridOnIcon />}
+          sx={{ margin: "5px" }}
+        >
+          CSV
+        </LayoutButton>
+      </TopToolbar>
+    );
   };
 
-  // Determine if the project has reached full funding
-  const isFullyFunded = record.donacionesRecibidas >= record.costoTotal;
-
-  // Prepare data for the chart
-  const data = [
-    { name: "Cubierto", value: record.donacionesRecibidas },
-    {
-      name: "Faltante",
-      value: Math.max(record.costoTotal - record.donacionesRecibidas, 0),
-    },
-  ];
-
-  const colorsToUse = isFullyFunded
-    ? [colors.redAccent[500], colors.blueAccent[500]]
-    : [colors.greenAccent[500], colors.blueAccent[500]];
-
   return (
-    <SimpleShowLayout>
-      <Typography
-        variant="h4"
-        sx={{ color: colors.grey[100], marginBottom: 2 }}
-      >
-        {record.nombre}
-      </Typography>
-      <TextField source="descripcion" label="Descripción" />
-      <TextField source="estado" label="Estado" />
-      <NumberField source="nivelUrgencia" label="Nivel de Urgencia" />
-      <DateField source="fechaInicio" label="Fecha de Inicio" />
-      <DateField source="fechaFinEstimada" label="Fecha de Fin Estimada" />
-      <NumberField source="costoTotal" label="Costo Total" />
-      <NumberField source="donacionesRecibidas" label="Donaciones Recibidas" />
-      <NumberField
-        source="porcentajeAsignado"
-        label="Porcentaje Asignado de Donaciones"
-      />
-      <TextField source="ubicacion" label="Ubicación" />
-
-      {/* Financing Distribution Chart */}
-      <Typography variant="h6" sx={{ color: colors.grey[100], marginTop: 4 }}>
-        Distribución de Financiamiento
-      </Typography>
-
-      <PieChart width={400} height={400}>
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          innerRadius={40}
-          outerRadius={140}
-          label={({ index, x, y, value }) => (
-            <text
-              x={x}
-              y={y}
-              fill={colors.grey[100]}
-              textAnchor="middle"
-              dominantBaseline="central"
-              style={{ fontSize: "14px" }}
-            >
-              {data[index].name}: {value}
-            </text>
-          )}
-        >
-          {data.map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={colorsToUse[index % colorsToUse.length]}
-            />
-          ))}
-        </Pie>
-        <Tooltip
-          contentStyle={{
-            backgroundColor: colors.primary[400],
-            color: colors.grey[100],
-            border: `1px solid ${colors.grey[100]}`,
-          }}
-        />
-        <Legend
-          formatter={(value) => (
-            <span style={{ color: colors.grey[100] }}>{value}</span>
-          )}
-        />
-      </PieChart>
-
-      {/* Button to change project status */}
-      <Button
-        variant="contained"
-        onClick={handleChangeEstado}
-        sx={{
-          marginTop: 2,
-          backgroundColor: colors.greenAccent[500],
-          color: colors.grey[100],
-          "&:hover": {
-            backgroundColor: colors.greenAccent[700],
-          },
-        }}
-      >
-        {`Marcar como ${
-          record.estado === "en progreso" ? "Finalizado" : "En Progreso"
-        }`}
-      </Button>
-
-      {/* Edit and Delete buttons */}
-      <CardActions>
-        <EditButton
+    <List
+      {...props}
+      actions={<ListActions />}
+      exporter={false} // Deshabilitamos el exportador predeterminado
+    >
+      {isSmall ? (
+        <SimpleList
+          primaryText={(record) => `Monto: $${record.monto}`}
+          secondaryText={(record) =>
+            `Donador: ${record.donador?.nombre} ${record.donador?.apellido}`
+          }
+          tertiaryText={(record) => `Fecha: ${record.fecha}`}
           sx={{
-            color: colors.greenAccent[500],
-            "&:hover": {
-              color: colors.greenAccent[100],
+            "& .RaSimpleList-primaryText": {
+              fontSize: "18px", // Aumenta el tamaño de la letra
+            },
+            "& .RaSimpleList-secondaryText": {
+              fontSize: "16px",
+            },
+            "& .RaSimpleList-tertiaryText": {
+              fontSize: "14px",
             },
           }}
         />
-        <DeleteButton />
-      </CardActions>
-    </SimpleShowLayout>
+      ) : (
+        <Datagrid
+          rowClick="edit"
+          sx={{
+            backgroundColor: colors.primary[400],
+            "& .RaDatagrid-row": {
+              fontSize: "30px", // Aumenta el tamaño de la letra
+              height: "60px", // Aumenta la altura de las filas
+            },
+          }}
+        >
+          <NumberField
+            source="monto"
+            options={{ style: "currency", currency: "MXN" }}
+          />
+          <DateField source="fecha" />
+          <TextField
+            source="donador.nombre"
+            label="Nombre del Donador"
+            emptyText="-"
+          />
+          <TextField
+            source="donador.apellido"
+            label="Apellido del Donador"
+            emptyText="-"
+          />
+          <EditButton
+            sx={{
+              color: colors.greenAccent[500],
+              "&:hover": {
+                color: colors.greenAccent[100],
+              },
+            }}
+          />
+          <DeleteButton />
+        </Datagrid>
+      )}
+    </List>
   );
 };
+
+export const DonadoresEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="donador.nombre" label="Nombre del Donador" />
+      <NumberInput source="monto" />
+      <TextInput source="donador.apellido" label="Apellido del Donador" />
+      <TextInput source="donador.email" label="Email del Donador" />
+      <SelectInput
+        source="metodo"
+        choices={[
+          { id: "manual", name: "Manual" },
+          { id: "online", name: "Online" },
+        ]}
+      />
+      <BooleanInput source="editado" label="Editado" />
+    </SimpleForm>
+  </Edit>
+);
+
+export const DonadoresCreate = () => (
+  <Create>
+    <SimpleForm defaultValues={{ editado: false, metodo: "manual" }}>
+      <NumberInput source="monto" />
+      <DateInput source="fecha" />
+      <SelectInput
+        source="metodo"
+        choices={[
+          { id: "manual", name: "Manual" },
+          { id: "online", name: "Online" },
+        ]}
+      />
+      <BooleanInput source="editado" label="Editado" />
+      <TextInput source="donador.nombre" label="Nombre del Donador" />
+      <TextInput source="donador.apellido" label="Apellido del Donador" />
+      <TextInput source="donador.email" label="Email del Donador" />
+    </SimpleForm>
+  </Create>
+);
