@@ -1,211 +1,233 @@
-// src/Pages/Donaciones/Donaciones.tsx
+import { createContext, useState, useMemo } from "react";
+import { createTheme, Theme, PaletteMode } from "@mui/material";
+import { ThemeOptions } from "@mui/material/styles";
 
-import React from "react";
-import {
-  List,
-  Datagrid,
-  SimpleList,
-  DateField,
-  TextField,
-  NumberField,
-  EditButton,
-  Edit,
-  Create,
-  SimpleForm,
-  TextInput,
-  NumberInput,
-  DeleteButton,
-  TopToolbar,
-  useListContext,
-  ListProps,
-  DateInput,
-  SelectInput,
-  BooleanInput,
-  useRedirect,
-  useNotify,
-} from "react-admin";
-import { Button } from "@mui/material";
-import { exportData } from "../../componentes/Export"; // Importamos la función
-import { useTheme } from "@mui/material/styles";
-import { tokens } from "../../theme";
-import { useMediaQuery, Theme } from "@mui/material";
-import { LayoutButton } from "../../layouts/Layout";
-
-// Material-UI Icons
-import DescriptionIcon from "@mui/icons-material/Description"; // For Excel
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf"; // For PDF
-import GridOnIcon from "@mui/icons-material/GridOn"; // For CSV
-import AddIcon from "@mui/icons-material/Add"; // For Create
-
-interface Donador {
-  nombre?: string;
-  apellido?: string;
-  email?: string;
+// Definimos una interfaz para los tokens de color
+interface ColorTokens {
+  grey: Record<number, string>;
+  primary: Record<number, string>;
+  greenAccent: Record<number, string>;
+  redAccent: Record<number, string>;
+  blueAccent: Record<number, string>;
 }
 
-interface DonacionRecord {
-  id: string;
-  monto: number;
-  fecha: string;
-  donador?: Donador;
-}
-
-export const DonadoresList = (props: ListProps) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const isSmall = useMediaQuery<Theme>((theme) => theme.breakpoints.down("sm"));
-
-  // Custom Toolbar for Export functionality
-  const ListActions = () => {
-    const { data } = useListContext<DonacionRecord>();
-    const redirect = useRedirect();
-    const notify = useNotify();
-
-    const handleExport = (format: "xlsx" | "pdf" | "csv") => {
-      if (data && data.length > 0) {
-        exportData(data, format);
-        notify(`Exportando datos a formato ${format.toUpperCase()}`, { type: "info" });
-      } else {
-        console.error("No hay datos para exportar.");
-        notify("No hay datos para exportar.", { type: "warning" });
+// Función para obtener los tokens de color según el modo
+export const tokens = (mode: PaletteMode): ColorTokens => ({
+  ...(mode === "dark"
+    ? {
+        // Paleta de colores para el modo oscuro
+        grey: {
+          100: "#e0e0e0", //Ciertas palabras del menu 
+          200: "#F80000",
+          300: "#888888", // Palabra Management 
+          400: "#F80000",
+          500: "#F80000",
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000",
+        },
+        primary: {
+          100: "#F80000",
+          200: "#F80000",
+          300: "#F80000",
+          400: "#1D1E33", // Barra lateral y superior del menu y fondos de usuarios y donaciones 
+          500: "#20214F", // Fondo detras y botones de las graficas 
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000",
+        },
+        greenAccent: {
+          100: "#FFFFFF", // Colores boton edit si pasa por encima 
+          200: "#F80000",
+          300: "#F80000",
+          400: "#F80000",
+          500: "#84C3BE", // Texto "Water..." y texto "Dashboard"  y texto "Edit" 4cceac
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#0f2922", // Color texto botones excel, csv, pdf 
+        },
+        redAccent: {
+          100: "#F80000",
+          200: "#F80000",
+          300: "#F80000",
+          400: "#e2726e", // Colores botones excel, csv, pdf cuando pasas por encima 
+          500: "#db4f4a", // Colores botones menus cuando pasas por encima 
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000",
+        },
+        blueAccent: {
+          100: "#FFFFFF", //Botones Excel, CSV, PDF 
+          200: "#F80000",
+          300: "#F80000",
+          400: "#F80000",
+          500: "#F80000",
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000",
+        },
       }
+    : {
+        grey: {
+          100: "#102C54", // Texto menu 
+          200: "#F80000",
+          300: "#1E1E1E", // Texto Management Menu 
+          400: "#F80000",
+          500: "#F80000",
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000",
+        },
+
+        // Paleta de colores para el modo claro
+        primary: {
+          100: "#102C54", //Botones de VIEW
+          200: "#F80000",
+          300: "#F80000",
+          400: "#f2f0f0", // Fondos menus laterales y superiores
+          500: "#F80000",
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000",
+        },
+        greenAccent: {
+          100: "#4cceac", // Colores boton edit si pasa por encima
+          200: "#F80000",
+          300: "#F80000",
+          400: "#F80000",
+          500: "#4cceac", // Texto "Water..." y texto "Dashboard"  y texto "Edit"
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#dbf5ee", // Colores texto botones excel, csv, pdf
+        },
+        redAccent: {
+          100: "#F80000",
+          200: "#F80000",
+          300: "#F80000",
+          400: "#F80000",
+          500: "#db4f4a", // Color botones menus cuando pasas por encima
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000", 
+        },
+        blueAccent: {
+          100: "#151632", //Botones Excel, CSV, PDF
+          200: "#F80000",
+          300: "#F80000",
+          400: "#F80000",
+          500: "#F80000",
+          600: "#F80000",
+          700: "#F80000",
+          800: "#F80000",
+          900: "#F80000",
+        },
+      }),
+});
+
+
+export const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
+  toggleColorMode: () => {},
+});
+
+export const useMode = (): [Theme, { toggleColorMode: () => void }] => {
+  const [mode, setMode] = useState<PaletteMode>("dark"); // 'dark' o 'light'
+
+  const colorMode = useMemo(
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode: PaletteMode) =>
+          prevMode === "light" ? "dark" : "light"
+        );
+      },
+    }),
+    []
+  );
+
+  const theme = useMemo(() => {
+    // Obtenemos los tokens de color según el modo
+    const colors = tokens(mode);
+
+    // Creamos el tema utilizando los tokens
+    const themeOptions: ThemeOptions = {
+      palette: {
+        mode,
+        ...(mode === "dark"
+          ? {
+              // Paleta para el modo oscuro
+              primary: {
+                main: colors.primary[500],
+              },
+              secondary: {
+                main: colors.greenAccent[500],
+              },
+              neutral: {
+                dark: colors.grey[700],
+                main: colors.grey[500],
+                light: colors.grey[100],
+              },
+              background: {
+                default: colors.primary[500],
+              },
+            }
+          : {
+              // Paleta para el modo claro
+              primary: {
+                main: colors.primary[100],
+              },
+              secondary: {
+                main: colors.greenAccent[500],
+              },
+              neutral: {
+                dark: colors.grey[700],
+                main: colors.grey[500],
+                light: colors.grey[100],
+              },
+              background: {
+                default: "#fcfcfc",
+              },
+            }),
+      },
+      typography: {
+        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+        fontSize: 14,
+        h1: {
+          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+          fontSize: 40,
+        },
+        h2: {
+          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+          fontSize: 32,
+        },
+        h3: {
+          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+          fontSize: 24,
+        },
+        h4: {
+          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+          fontSize: 20,
+        },
+        h5: {
+          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+          fontSize: 16,
+        },
+        h6: {
+          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
+          fontSize: 14,
+        },
+      },
     };
 
-    return (
-      <TopToolbar>
-        <LayoutButton
-          onClick={() => redirect("/donaciones/create")}
-          startIcon={<AddIcon />}
-          sx={{ margin: "5px" }}
-        >
-          Crear
-        </LayoutButton>
-        <LayoutButton
-          onClick={() => handleExport("xlsx")}
-          startIcon={<DescriptionIcon />}
-          sx={{ margin: "5px" }}
-        >
-          Excel
-        </LayoutButton>
-        <LayoutButton
-          onClick={() => handleExport("pdf")}
-          startIcon={<PictureAsPdfIcon />}
-          sx={{ margin: "5px" }}
-        >
-          PDF
-        </LayoutButton>
-        <LayoutButton
-          onClick={() => handleExport("csv")}
-          startIcon={<GridOnIcon />}
-          sx={{ margin: "5px" }}
-        >
-          CSV
-        </LayoutButton>
-      </TopToolbar>
-    );
-  };
+    return createTheme(themeOptions);
+  }, [mode]);
 
-  return (
-    <List
-      {...props}
-      actions={<ListActions />}
-      exporter={false} // Deshabilitamos el exportador predeterminado
-    >
-      {isSmall ? (
-        <SimpleList
-          primaryText={(record) => `Monto: $${record.monto}`}
-          secondaryText={(record) =>
-            `Donador: ${record.donador?.nombre} ${record.donador?.apellido}`
-          }
-          tertiaryText={(record) => `Fecha: ${record.fecha}`}
-          sx={{
-            "& .RaSimpleList-primaryText": {
-              fontSize: "18px", // Aumenta el tamaño de la letra
-            },
-            "& .RaSimpleList-secondaryText": {
-              fontSize: "16px",
-            },
-            "& .RaSimpleList-tertiaryText": {
-              fontSize: "14px",
-            },
-          }}
-        />
-      ) : (
-        <Datagrid
-          rowClick="edit"
-          sx={{
-            backgroundColor: colors.primary[400],
-            "& .RaDatagrid-row": {
-              fontSize: "30px", // Aumenta el tamaño de la letra
-              height: "60px", // Aumenta la altura de las filas
-            },
-          }}
-        >
-          <NumberField
-            source="monto"
-            options={{ style: "currency", currency: "MXN" }}
-          />
-          <DateField source="fecha" />
-          <TextField
-            source="donador.nombre"
-            label="Nombre del Donador"
-            emptyText="-"
-          />
-          <TextField
-            source="donador.apellido"
-            label="Apellido del Donador"
-            emptyText="-"
-          />
-          <EditButton
-            sx={{
-              color: colors.greenAccent[500],
-              "&:hover": {
-                color: colors.greenAccent[100],
-              },
-            }}
-          />
-          <DeleteButton />
-        </Datagrid>
-      )}
-    </List>
-  );
+  return [theme, colorMode];
 };
-
-export const DonadoresEdit = () => (
-  <Edit>
-    <SimpleForm>
-      <TextInput source="donador.nombre" label="Nombre del Donador" />
-      <NumberInput source="monto" />
-      <TextInput source="donador.apellido" label="Apellido del Donador" />
-      <TextInput source="donador.email" label="Email del Donador" />
-      <SelectInput
-        source="metodo"
-        choices={[
-          { id: "manual", name: "Manual" },
-          { id: "online", name: "Online" },
-        ]}
-      />
-      <BooleanInput source="editado" label="Editado" />
-    </SimpleForm>
-  </Edit>
-);
-
-export const DonadoresCreate = () => (
-  <Create>
-    <SimpleForm defaultValues={{ editado: false, metodo: "manual" }}>
-      <NumberInput source="monto" />
-      <DateInput source="fecha" />
-      <SelectInput
-        source="metodo"
-        choices={[
-          { id: "manual", name: "Manual" },
-          { id: "online", name: "Online" },
-        ]}
-      />
-      <BooleanInput source="editado" label="Editado" />
-      <TextInput source="donador.nombre" label="Nombre del Donador" />
-      <TextInput source="donador.apellido" label="Apellido del Donador" />
-      <TextInput source="donador.email" label="Email del Donador" />
-    </SimpleForm>
-  </Create>
-);

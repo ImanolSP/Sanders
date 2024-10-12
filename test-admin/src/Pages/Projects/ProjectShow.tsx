@@ -72,32 +72,48 @@ const ProjectShowContent = () => {
   const totalValue = data.reduce((sum, entry) => sum + entry.value, 0);
 
   const colorsToUse = isFullyFunded
-    ? [colors.redAccent[500], colors.blueAccent[500]]
-    : [colors.greenAccent[500], colors.blueAccent[500]];
+    ? // ? [colors.redAccent[500], colors.blueAccent[500]]
+      [colors.blueAccent[500], colors.redAccent[500]]
+    : // : [colors.greenAccent[500], colors.blueAccent[500]];
+      [colors.greenAccent[500], colors.redAccent[500]];
 
   return (
     <SimpleShowLayout>
       <Typography
-        variant="h4"
+        variant="h1"
         sx={{ color: colors.grey[100], marginBottom: 2 }}
       >
         {record.nombre}
       </Typography>
-      <TextField source="descripcion" label="Descripción" />
-      <TextField source="estado" label="Estado" />
-      <NumberField source="nivelUrgencia" label="Nivel de Urgencia" />
-      <DateField source="fechaInicio" label="Fecha de Inicio" />
-      <DateField source="fechaFinEstimada" label="Fecha de Fin Estimada" />
-      <NumberField source="costoTotal" label="Costo Total" />
-      <NumberField source="donacionesRecibidas" label="Donaciones Recibidas" />
+
+      <TextField source="descripcion" label="Descripción" variant="h5" />
+      <TextField source="estado" label="Estado" variant="h5" />
+      <NumberField
+        source="nivelUrgencia"
+        label="Nivel de Urgencia"
+        variant="h5"
+      />
+      <DateField source="fechaInicio" label="Fecha de Inicio" variant="h5" />
+      <DateField
+        source="fechaFinEstimada"
+        label="Fecha de Fin Estimada"
+        variant="h5"
+      />
+      <NumberField source="costoTotal" label="Costo Total" variant="h5" />
+      <NumberField
+        source="donacionesRecibidas"
+        label="Donaciones Recibidas"
+        variant="h5"
+      />
       <NumberField
         source="porcentajeAsignado"
         label="Porcentaje Asignado de Donaciones"
+        variant="h5"
       />
-      <TextField source="ubicacion" label="Ubicación" />
+      <TextField source="ubicacion" label="Ubicación" variant="h5" />
 
       {/* Financing Distribution Chart */}
-      <Typography variant="h6" sx={{ color: colors.grey[100], marginTop: 4 }}>
+      <Typography variant="h3" sx={{ color: colors.grey[100], marginTop: 4 }}>
         Distribución de Financiamiento
       </Typography>
 
@@ -108,8 +124,8 @@ const ProjectShowContent = () => {
           nameKey="name"
           cx="50%"
           cy="50%"
-          innerRadius={60}
-          outerRadius={100}
+          innerRadius={30}
+          outerRadius={130}
           label={({ index, x, y, value }) => {
             const displayValue =
               displayMode === "value"
@@ -146,7 +162,7 @@ const ProjectShowContent = () => {
           contentStyle={{
             backgroundColor: colors.primary[400],
             color: colors.grey[100],
-            border: `1px solid ${colors.grey[100]}`,
+            border: `2px solid ${colors.grey[100]}`,
           }}
         />
         <Legend

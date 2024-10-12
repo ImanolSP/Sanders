@@ -26,9 +26,7 @@ import { Link } from "react-router-dom";
 import { PieChart, Pie, Cell } from "recharts";
 import { Project } from "../../interfaces/Project";
 import { tokens } from "../../theme";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import DescriptionIcon from "@mui/icons-material/Description"; // For Excel
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf"; // For PDF
 import GridOnIcon from "@mui/icons-material/GridOn"; // For CSV
 import AddIcon from "@mui/icons-material/Add"; // For Create
 import { LayoutButton } from "../../layouts/Layout";
@@ -42,8 +40,8 @@ export const ProjectFilter = [
     choices={[
       { id: "", name: "Todos" },
       { id: "en progreso", name: "En Progreso" },
-      { id: "finalizado", name: "Finalizado" },
-      { id: "fondos suficientes", name: "Fondos Suficientes" },
+      { id: "finalizado", name: "Finalizado y Fondos suficientes" },
+      //{ id: "fondos suficientes", name: "Fondos Suficientes" },
     ]}
     alwaysOn
   />,
@@ -59,17 +57,19 @@ const ListActions = () => {
   const handleExport = (format: "xlsx" | "pdf" | "csv") => {
     if (data && data.length > 0) {
       exportData(data, format);
-      notify(`Exportando datos a formato ${format.toUpperCase()}`, { type: 'info' });
+      notify(`Exportando datos a formato ${format.toUpperCase()}`, {
+        type: "info",
+      });
     } else {
       console.error("No hay datos para exportar.");
-      notify("No hay datos para exportar.", { type: 'warning' });
+      notify("No hay datos para exportar.", { type: "warning" });
     }
   };
 
   return (
     <TopToolbar>
       <LayoutButton
-        onClick={() => redirect('/projects/create')}
+        onClick={() => redirect("/projects/create")}
         startIcon={<AddIcon />}
         sx={{ margin: "5px" }}
       >
@@ -117,7 +117,7 @@ const ProjectGrid = () => {
               }}
             >
               <CardContent>
-                <Typography variant="h5" component="div">
+                <Typography variant="h4" component="div">
                   {project.nombre}
                 </Typography>
                 {/* Gráfico resumen */}
@@ -136,12 +136,14 @@ const ProjectGrid = () => {
                     dataKey="value"
                     outerRadius={40}
                   >
-                    <Cell fill={isFullyFunded ? "#ff0000" : "#82ca9d"} />
-                    <Cell fill="#d0ed57" />
+                    {/* <Cell fill={isFullyFunded ? "#ff0000" : "#82ca9d"} /> */}
+                    <Cell fill={isFullyFunded ? "#6870fa" : "#82ca9d"} />
+                    <Cell fill="#db4f4a" />
                   </Pie>
                 </PieChart>
                 <Typography variant="body2" color={colors.grey[100]}>
-                  Estado: {isFullyFunded ? "Fondos Suficientes" : project.estado}
+                  Estado:{" "}
+                  {isFullyFunded ? "Fondos Suficientes" : project.estado}
                 </Typography>
                 <Typography variant="body2" color={colors.grey[100]}>
                   Nivel de Urgencia: {project.nivelUrgencia}
