@@ -1,233 +1,169 @@
-import { createContext, useState, useMemo } from "react";
-import { createTheme, Theme, PaletteMode } from "@mui/material";
-import { ThemeOptions } from "@mui/material/styles";
+// src/layouts/Sidebar.tsx
 
-// Definimos una interfaz para los tokens de color
-interface ColorTokens {
-  grey: Record<number, string>;
-  primary: Record<number, string>;
-  greenAccent: Record<number, string>;
-  redAccent: Record<number, string>;
-  blueAccent: Record<number, string>;
-}
+import React from "react";
+import { useTheme } from "@mui/material/styles";
+import { Box, Typography } from "@mui/material";
+import { Sidebar, Menu, MenuItem, useProSidebar } from "react-pro-sidebar";
+import { Link as RouterLink, useLocation } from "react-router-dom";
+import { tokens } from "../theme";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
+import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlined";
+import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
+import sandersLogo from "../image/sanders.png";
+import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
 
-// Función para obtener los tokens de color según el modo
-export const tokens = (mode: PaletteMode): ColorTokens => ({
-  ...(mode === "dark"
-    ? {
-        // Paleta de colores para el modo oscuro
-        grey: {
-          100: "#e0e0e0", //Ciertas palabras del menu 
-          200: "#F80000",
-          300: "#888888", // Palabra Management 
-          400: "#F80000",
-          500: "#F80000",
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000",
-        },
-        primary: {
-          100: "#F80000",
-          200: "#F80000",
-          300: "#F80000",
-          400: "#1D1E33", // Barra lateral y superior del menu y fondos de usuarios y donaciones 
-          500: "#20214F", // Fondo detras y botones de las graficas 
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000",
-        },
-        greenAccent: {
-          100: "#FFFFFF", // Colores boton edit si pasa por encima 
-          200: "#F80000",
-          300: "#F80000",
-          400: "#F80000",
-          500: "#84C3BE", // Texto "Water..." y texto "Dashboard"  y texto "Edit" 4cceac
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#0f2922", // Color texto botones excel, csv, pdf 
-        },
-        redAccent: {
-          100: "#F80000",
-          200: "#F80000",
-          300: "#F80000",
-          400: "#e2726e", // Colores botones excel, csv, pdf cuando pasas por encima 
-          500: "#db4f4a", // Colores botones menus cuando pasas por encima 
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000",
-        },
-        blueAccent: {
-          100: "#FFFFFF", //Botones Excel, CSV, PDF 
-          200: "#F80000",
-          300: "#F80000",
-          400: "#F80000",
-          500: "#F80000",
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000",
-        },
-      }
-    : {
-        grey: {
-          100: "#102C54", // Texto menu 
-          200: "#F80000",
-          300: "#1E1E1E", // Texto Management Menu 
-          400: "#F80000",
-          500: "#F80000",
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000",
-        },
+const SidebarComponent: React.FC = () => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
+  const { collapseSidebar, collapsed } = useProSidebar();
+  const location = useLocation();
 
-        // Paleta de colores para el modo claro
-        primary: {
-          100: "#102C54", //Botones de VIEW
-          200: "#F80000",
-          300: "#F80000",
-          400: "#f2f0f0", // Fondos menus laterales y superiores
-          500: "#F80000",
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000",
-        },
-        greenAccent: {
-          100: "#4cceac", // Colores boton edit si pasa por encima
-          200: "#F80000",
-          300: "#F80000",
-          400: "#F80000",
-          500: "#4cceac", // Texto "Water..." y texto "Dashboard"  y texto "Edit"
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#dbf5ee", // Colores texto botones excel, csv, pdf
-        },
-        redAccent: {
-          100: "#F80000",
-          200: "#F80000",
-          300: "#F80000",
-          400: "#F80000",
-          500: "#db4f4a", // Color botones menus cuando pasas por encima
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000", 
-        },
-        blueAccent: {
-          100: "#151632", //Botones Excel, CSV, PDF
-          200: "#F80000",
-          300: "#F80000",
-          400: "#F80000",
-          500: "#F80000",
-          600: "#F80000",
-          700: "#F80000",
-          800: "#F80000",
-          900: "#F80000",
-        },
-      }),
-});
-
-
-export const ColorModeContext = createContext<{ toggleColorMode: () => void }>({
-  toggleColorMode: () => {},
-});
-
-export const useMode = (): [Theme, { toggleColorMode: () => void }] => {
-  const [mode, setMode] = useState<PaletteMode>("dark"); // 'dark' o 'light'
-
-  const colorMode = useMemo(
-    () => ({
-      toggleColorMode: () => {
-        setMode((prevMode: PaletteMode) =>
-          prevMode === "light" ? "dark" : "light"
-        );
+  const menuItemStyles = {
+    button: ({ active }: { active: boolean }) => ({
+      color: active ? colors.greenAccent[500] : colors.grey[100],
+      backgroundColor: "transparent !important",
+      "&:hover": {
+        color: colors.redAccent[500],
+        backgroundColor: "transparent !important",
+        textDecoration: "none !important",
+        transform: "scale(1.05)",
+        transition: "transform 0.2s",
+      },
+      fontWeight: active ? "bold" : "normal",
+    }),
+    icon: ({ active }: { active: boolean }) => ({
+      color: active ? colors.greenAccent[500] : colors.grey[100],
+      "&:hover": {
+        color: colors.redAccent[500],
+        transform: "scale(1.2)",
+        transition: "transform 0.2s",
       },
     }),
-    []
+    label: ({ active }: { active: boolean }) => ({
+      color: active ? colors.greenAccent[500] : colors.grey[100],
+      "&:hover": {
+        color: colors.redAccent[500],
+        transform: "scale(1.1)",
+        transition: "transform 0.2s",
+        textDecoration: "none !important",
+      },
+    }),
+  };
+
+  return (
+    <Box
+      sx={{
+        height: "100vh",
+        "& .ps-sidebar-container": {
+          backgroundColor: `${colors.primary[400]} !important`,
+        },
+        "& .ps-menuitem-root": {
+          padding: collapsed
+            ? "10px 0 !important"
+            : "5px 35px 5px 20px !important",
+          justifyContent: collapsed ? "center" : "flex-start",
+        },
+      }}
+    >
+      <Sidebar>
+        <Menu menuItemStyles={menuItemStyles}>
+          {/* Botón de colapso */}
+          <MenuItem
+            onClick={() => collapseSidebar()}
+            icon={<MenuOutlinedIcon />}
+            style={{ margin: "10px 0 20px 0", color: colors.grey[100] }}
+          >
+            {!collapsed && (
+              <Typography
+                variant="h3"
+                color={colors.grey[100]}
+                ml="15px"
+                sx={{ userSelect: "none" }}
+              >
+                ADMIN
+              </Typography>
+            )}
+          </MenuItem>
+
+          {/* Información del usuario */}
+          {!collapsed && (
+            <Box mb="25px">
+              <Box display="flex" justifyContent="center" alignItems="center">
+                <img
+                  src={sandersLogo}
+                  alt="Logo de la Fundación Sanders"
+                  width="100px"
+                  height="100px"
+                  style={{ cursor: "pointer", borderRadius: "50%" }}
+                />
+              </Box>
+              <Box textAlign="center">
+                <Typography
+                  variant="h2"
+                  color={colors.grey[100]}
+                  fontWeight="bold"
+                  sx={{ mt: 2 }}
+                >
+                  Fundación Sanders
+                </Typography>
+                <Typography variant="h5" color={colors.greenAccent[500]}>
+                  Water to where it is needed
+                </Typography>
+              </Box>
+            </Box>
+          )}
+
+          {/* Menú */}
+          <Box paddingLeft={collapsed ? undefined : "10%"}>
+            <MenuItem
+              component={<RouterLink to="/" />}
+              icon={<HomeOutlinedIcon />}
+              active={location.pathname === "/"}
+            >
+              Dashboard
+            </MenuItem>
+
+            {/* Sección de Gestión */}
+            <Typography
+              variant="h6"
+              color={colors.grey[300]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
+              Management
+            </Typography>
+
+            <MenuItem
+              component={<RouterLink to="/usuarios" />}
+              icon={<PeopleOutlinedIcon />}
+              active={location.pathname === "/usuarios"}
+            >
+              Usuarios
+            </MenuItem>
+
+            <MenuItem
+              component={<RouterLink to="/donaciones" />}
+              icon={<MonetizationOnOutlinedIcon />}
+              active={location.pathname === "/donaciones"}
+            >
+              Donaciones
+            </MenuItem>
+
+            <MenuItem
+              component={<RouterLink to="/projects" />}
+              icon={<WorkOutlineIcon />}
+              active={location.pathname === "/projects"}
+            >
+              Proyectos
+            </MenuItem>
+
+            
+
+          </Box>
+        </Menu>
+      </Sidebar>
+    </Box>
   );
-
-  const theme = useMemo(() => {
-    // Obtenemos los tokens de color según el modo
-    const colors = tokens(mode);
-
-    // Creamos el tema utilizando los tokens
-    const themeOptions: ThemeOptions = {
-      palette: {
-        mode,
-        ...(mode === "dark"
-          ? {
-              // Paleta para el modo oscuro
-              primary: {
-                main: colors.primary[500],
-              },
-              secondary: {
-                main: colors.greenAccent[500],
-              },
-              neutral: {
-                dark: colors.grey[700],
-                main: colors.grey[500],
-                light: colors.grey[100],
-              },
-              background: {
-                default: colors.primary[500],
-              },
-            }
-          : {
-              // Paleta para el modo claro
-              primary: {
-                main: colors.primary[100],
-              },
-              secondary: {
-                main: colors.greenAccent[500],
-              },
-              neutral: {
-                dark: colors.grey[700],
-                main: colors.grey[500],
-                light: colors.grey[100],
-              },
-              background: {
-                default: "#fcfcfc",
-              },
-            }),
-      },
-      typography: {
-        fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
-        fontSize: 14,
-        h1: {
-          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
-          fontSize: 40,
-        },
-        h2: {
-          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
-          fontSize: 32,
-        },
-        h3: {
-          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
-          fontSize: 24,
-        },
-        h4: {
-          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
-          fontSize: 20,
-        },
-        h5: {
-          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
-          fontSize: 16,
-        },
-        h6: {
-          fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
-          fontSize: 14,
-        },
-      },
-    };
-
-    return createTheme(themeOptions);
-  }, [mode]);
-
-  return [theme, colorMode];
 };
+
+export default SidebarComponent;

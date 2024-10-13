@@ -7,17 +7,18 @@ import {
   TextInput,
   NumberInput,
   DateInput,
-
   useRedirect,
   useDataProvider,
   Toolbar,
   SaveButton,
   useRecordContext,
   FormDataConsumer,
+  SelectInput,
 } from 'react-admin';
 import { Typography } from '@mui/material';
 import { Project } from '../../interfaces/Project';
 import { DataProvider } from 'react-admin';
+import { useTheme } from '@mui/material/styles';
 
 export const ProjectEdit = (props: any) => {
   const redirect = useRedirect();
@@ -48,6 +49,17 @@ export const ProjectEdit = (props: any) => {
 const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => {
   const [maxAssignable, setMaxAssignable] = useState<number>(100);
   const record = useRecordContext<Project>();
+  const theme = useTheme();
+
+  // Styles for input labels in dark mode
+  const inputLabelStyles = {
+    '& .MuiFormLabel-root': {
+      color: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+    },
+    '& .MuiFormLabel-root.Mui-focused': {
+      color: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+    },
+  };
 
   // Function to get total assigned percentage
   const getTotalAssignedPercentage = async (): Promise<number> => {
@@ -80,12 +92,39 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
 
   return (
     <>
-      <TextInput source="nombre" label="Nombre" fullWidth />
-      <TextInput source="descripcion" label="Descripción" multiline fullWidth />
-      <NumberInput source="nivelUrgencia" label="Nivel de Urgencia" />
-      <DateInput source="fechaInicio" label="Fecha de Inicio" />
-      <DateInput source="fechaFinEstimada" label="Fecha de Fin Estimada" />
-      <NumberInput source="costoTotal" label="Costo Total" />
+      <TextInput
+        source="nombre"
+        label="Nombre"
+        fullWidth
+        sx={inputLabelStyles}
+      />
+      <TextInput
+        source="descripcion"
+        label="Descripción"
+        multiline
+        fullWidth
+        sx={inputLabelStyles}
+      />
+      <NumberInput
+        source="nivelUrgencia"
+        label="Nivel de Urgencia"
+        sx={inputLabelStyles}
+      />
+      <DateInput
+        source="fechaInicio"
+        label="Fecha de Inicio"
+        sx={inputLabelStyles}
+      />
+      <DateInput
+        source="fechaFinEstimada"
+        label="Fecha de Fin Estimada"
+        sx={inputLabelStyles}
+      />
+      <NumberInput
+        source="costoTotal"
+        label="Costo Total"
+        sx={inputLabelStyles}
+      />
       <FormDataConsumer>
         {({ formData, ...rest }) => {
           useEffect(() => {
@@ -106,6 +145,7 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
                 source="porcentajeAsignado"
                 label="Porcentaje Asignado"
                 validate={validatePorcentaje}
+                sx={inputLabelStyles}
               />
               <Typography variant="body2">
                 Porcentaje restante disponible: {maxAssignable}%
@@ -114,8 +154,23 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
           );
         }}
       </FormDataConsumer>
-      <TextInput source="ubicacion" label="Ubicación" fullWidth />
+      <TextInput
+        source="ubicacion"
+        label="Ubicación"
+        fullWidth
+        sx={inputLabelStyles}
+      />
 
+      <SelectInput
+        source="estado"
+        label="Estado"
+        choices={[
+          { id: 'en progreso', name: 'En Progreso' },
+          { id: 'finalizado', name: 'Finalizado' },
+          { id: 'fondos suficientes', name: 'Fondos Suficientes' },
+        ]}
+        sx={inputLabelStyles}
+      />
     </>
   );
 };

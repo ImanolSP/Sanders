@@ -16,6 +16,7 @@ import { Typography } from '@mui/material';
 import { Project } from '../../interfaces/Project';
 import { DataProvider } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
+import { useTheme } from '@mui/material/styles';
 
 export const ProjectCreate = (props: any) => {
   const redirect = useRedirect();
@@ -42,6 +43,7 @@ export const ProjectCreate = (props: any) => {
 const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => {
   const [maxAssignable, setMaxAssignable] = useState<number>(100);
   const [totalAssigned, setTotalAssigned] = useState<number>(0);
+  const theme = useTheme();
 
   const { watch } = useFormContext();
   const porcentajeAsignado = watch('porcentajeAsignado') || 0;
@@ -71,7 +73,7 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
     fetchTotalAssigned();
   }, [dataProvider]);
 
-  // Simplify or remove the validation function temporarily
+  // Validation function for porcentajeAsignado
   const validatePorcentaje = (value: number) => {
     const maxAssignablePercentage = 100 - totalAssigned;
 
@@ -82,25 +84,68 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
     return undefined;
   };
 
+  // Styles for input labels in dark mode
+  const inputLabelStyles = {
+    '& .MuiFormLabel-root': {
+      color: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+    },
+    '& .MuiFormLabel-root.Mui-focused': {
+      color: theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+    },
+  };
+
   return (
     <>
-      <TextInput source="nombre" label="Nombre" fullWidth />
-      <TextInput source="descripcion" label="Descripción" multiline fullWidth />
-      <NumberInput source="nivelUrgencia" label="Nivel de Urgencia" />
-      <DateInput source="fechaInicio" label="Fecha de Inicio" />
-      <DateInput source="fechaFinEstimada" label="Fecha de Fin Estimada" />
-      <NumberInput source="costoTotal" label="Costo Total" />
+      <TextInput
+        source="nombre"
+        label="Nombre"
+        fullWidth
+        sx={inputLabelStyles}
+      />
+      <TextInput
+        source="descripcion"
+        label="Descripción"
+        multiline
+        fullWidth
+        sx={inputLabelStyles}
+      />
+      <NumberInput
+        source="nivelUrgencia"
+        label="Nivel de Urgencia"
+        sx={inputLabelStyles}
+      />
+      <DateInput
+        source="fechaInicio"
+        label="Fecha de Inicio"
+        sx={inputLabelStyles}
+      />
+      <DateInput
+        source="fechaFinEstimada"
+        label="Fecha de Fin Estimada"
+        sx={inputLabelStyles}
+      />
+      <NumberInput
+        source="costoTotal"
+        label="Costo Total"
+        sx={inputLabelStyles}
+      />
 
       <NumberInput
         source="porcentajeAsignado"
         label="Porcentaje Asignado"
         validate={validatePorcentaje}
+        sx={inputLabelStyles}
       />
       <Typography variant="body2">
         Porcentaje restante disponible: {maxAssignable - porcentajeAsignado}%
       </Typography>
 
-      <TextInput source="ubicacion" label="Ubicación" fullWidth />
+      <TextInput
+        source="ubicacion"
+        label="Ubicación"
+        fullWidth
+        sx={inputLabelStyles}
+      />
 
       <SelectInput
         source="estado"
@@ -110,7 +155,8 @@ const ProjectFormFields = ({ dataProvider }: { dataProvider: DataProvider }) => 
           { id: 'finalizado', name: 'Finalizado' },
           { id: 'fondos suficientes', name: 'Fondos Suficientes' },
         ]}
-        defaultValue="en progreso" // Set default value here
+        defaultValue="en progreso"
+        sx={inputLabelStyles}
       />
     </>
   );

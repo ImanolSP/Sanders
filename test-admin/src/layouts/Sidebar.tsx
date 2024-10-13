@@ -1,4 +1,4 @@
-// Sidebar.tsx
+// src/layouts/Sidebar.tsx
 
 import React from "react";
 import { useTheme } from "@mui/material/styles";
@@ -12,6 +12,7 @@ import MonetizationOnOutlinedIcon from "@mui/icons-material/MonetizationOnOutlin
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import sandersLogo from "../image/sanders.png";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday"; // Import the calendar icon
 
 const SidebarComponent: React.FC = () => {
   const theme = useTheme();
@@ -68,7 +69,7 @@ const SidebarComponent: React.FC = () => {
     >
       <Sidebar>
         <Menu menuItemStyles={menuItemStyles}>
-          {/* Botón de colapso */}
+          {/* Collapse Button */}
           <MenuItem
             onClick={() => collapseSidebar()}
             icon={<MenuOutlinedIcon />}
@@ -86,7 +87,7 @@ const SidebarComponent: React.FC = () => {
             )}
           </MenuItem>
 
-          {/* Información del usuario */}
+          {/* User Information */}
           {!collapsed && (
             <Box mb="25px">
               <Box display="flex" justifyContent="center" alignItems="center">
@@ -114,7 +115,7 @@ const SidebarComponent: React.FC = () => {
             </Box>
           )}
 
-          {/* Menú */}
+          {/* Menu */}
           <Box paddingLeft={collapsed ? undefined : "10%"}>
             <MenuItem
               component={<RouterLink to="/" />}
@@ -124,7 +125,7 @@ const SidebarComponent: React.FC = () => {
               Dashboard
             </MenuItem>
 
-            {/* Sección de Gestión */}
+            {/* Management Section */}
             <Typography
               variant="h6"
               color={colors.grey[300]}
@@ -157,8 +158,14 @@ const SidebarComponent: React.FC = () => {
               Proyectos
             </MenuItem>
 
-            
-
+            {/* Add the Calendar Menu Item */}
+            <MenuItem
+              component={<RouterLink to="/calendar" />}
+              icon={<CalendarTodayIcon />}
+              active={location.pathname === "/calendar"}
+            >
+              Calendario
+            </MenuItem>
           </Box>
         </Menu>
       </Sidebar>

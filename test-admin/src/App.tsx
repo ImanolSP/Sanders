@@ -1,6 +1,8 @@
 // App.tsx
-import React from "react";
-import { Admin, Resource } from "react-admin";
+
+import React, { useEffect } from "react";
+import { Admin, Resource, CustomRoutes } from "react-admin";
+import { Route } from "react-router-dom";
 import { useMode, ColorModeContext } from "./theme";
 import Layout from "./layouts/Layout";
 import { UserCreate, UserEdit, UserList } from "./Pages/Users/Users";
@@ -17,22 +19,22 @@ import { MyLoginPage } from "./LogIn";
 import { basedatos } from "./providers/dataprovider";
 import { i18nProvider } from "./providers/i18nProvider";
 import { ProSidebarProvider } from "react-pro-sidebar";
-import { useEffect } from "react";
-//import { permission } from "process";
 import { checkTokenExpiration } from "./CheckAuth/authUtils";
-
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline"; // Icono para proyectos
 import { ProjectList } from "./Pages/Projects/ProjectList";
 import { ProjectShow } from "./Pages/Projects/ProjectShow";
 import { ProjectCreate } from "./Pages/Projects/ProjectCreate";
 import { ProjectEdit } from "./Pages/Projects/ProjectEdit";
+import { CalendarPage } from "./Pages/Calendar/CalendarPage"; // Import CalendarPage
 
 export const App = () => {
   const [theme, colorMode] = useMode();
+
   useEffect(() => {
     // Check token expiration when the component mounts
     checkTokenExpiration();
   }, []);
+
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ProSidebarProvider>
@@ -71,9 +73,12 @@ export const App = () => {
                 edit={ProjectEdit}
                 icon={WorkOutlineIcon}
               />
+              {/* Add the custom route for CalendarPage */}
+              <CustomRoutes>
+                <Route path="/calendar" element={<CalendarPage />} />
+              </CustomRoutes>
             </>
           )}
-          {/* Otros recursos si los hay */}
         </Admin>
       </ProSidebarProvider>
     </ColorModeContext.Provider>
