@@ -51,7 +51,7 @@ const minutosBloqueado = 15;
 //
 const projectsCollection = "projects";
 //
-const SECRET_KEY = "3b69f009e18b462175223942d991862699d4c96e53ac89a4363d807fe7ebb349";
+const SECRET_KEY = "3b69f009e18b462175223942d991862699d4c96e53ac89a4363d807fe7ebb349";//NEEDS TO BE CHANGED AND SAVED IN THE .ENV FILE WHEN LAUNCHED INTRO PRODUCTION, HIGH PRIORITY
 
 async function connectToDB() {
   return await CLIENT.connect();
