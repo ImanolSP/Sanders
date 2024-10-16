@@ -1,6 +1,6 @@
 // App.tsx
 
-import React, { useEffect } from "react";
+import React, { useEffect,Fragment } from "react";
 import { Admin, Resource, CustomRoutes } from "react-admin";
 import { Route } from "react-router-dom";
 import { useMode, ColorModeContext } from "./theme";
@@ -29,7 +29,7 @@ import { CalendarPage } from "./Pages/Calendar/CalendarPage"; // Import Calendar
 
 export const App = () => {
   const [theme, colorMode] = useMode();
-
+  const NoAccess = () => <Fragment />;
   useEffect(() => {
     // Check token expiration when the component mounts
     checkTokenExpiration();
@@ -61,8 +61,8 @@ export const App = () => {
               <Resource
                 name="donaciones"
                 list={DonadoresList}
-                edit={DonadoresEdit}
-                create={DonadoresCreate}
+                edit={permissions === "admin" || permissions === "executive"  ? DonadoresEdit : NoAccess}
+                create={permissions === "admin"|| permissions === "executive" ? DonadoresCreate: NoAccess}
                 icon={PostIcon}
               />
               <Resource
