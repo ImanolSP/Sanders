@@ -11,7 +11,7 @@
     "start": "vite"
   },
   "dependencies": {
-    "@mui/material": "^5.16.7",
+    "@mui/material": "^7.0.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "file-saver": "^2.0.5",
